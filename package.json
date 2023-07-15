@@ -16,6 +16,10 @@
     "vite-plugin-solid": "^2.7.0"
   },
   "dependencies": {
+    "effector": "^22.8.6",
+    "effector-solid": "^0.22.7",
+    "patronum": "^1.18.0",
+    "prettier": "^3.0.0",
     "solid-js": "^1.7.6"
   }
 }
