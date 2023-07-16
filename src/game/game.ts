@@ -19,21 +19,21 @@ export type Stage =
   | { stage: typeof Stages.Finish; player: number };
 
 export type Scores = {
-  Aces: number;
-  Deuces: number;
-  Threes: number;
-  Fours: number;
-  Fives: number;
-  Sixes: number;
-  Extra: number;
+  Aces: number | null;
+  Deuces: number | null;
+  Threes: number | null;
+  Fours: number | null;
+  Fives: number | null;
+  Sixes: number | null;
+  Extra: number | null;
   //
-  ThreeOfAKind: number;
-  FourOfAKind: number;
-  FullHouse: number;
-  SmallStraight: number;
-  LargeStraight: number;
-  Yacht: number;
-  Chance: number;
+  "Three of a kind": number | null;
+  "Four of a kind": number | null;
+  "Full house": number | null;
+  "Small straight": number | null;
+  "Large straight": number | null;
+  Yacht: number | null;
+  Chance: number | null;
 };
 
 export type CategoryName = keyof Scores;
@@ -44,22 +44,29 @@ export type Player = {
   scores: Scores;
 };
 
-type Category = {
-  name: string;
+export type Category = {
+  name: CategoryName;
   icon: string;
-  isMatch: (dices: Dices) => number | false;
+  isMatch: (dices: Dices, scores: Scores) => number | false;
 };
 
-const categoriesTop: Category[] = [
+export const categoriesTop: Category[] = [
   { name: "Aces", icon: "", isMatch: (d) => setOf(d, 1) },
   { name: "Deuces", icon: "", isMatch: (d) => setOf(d, 2) },
   { name: "Threes", icon: "", isMatch: (d) => setOf(d, 3) },
   { name: "Fours", icon: "", isMatch: (d) => setOf(d, 4) },
   { name: "Fives", icon: "", isMatch: (d) => setOf(d, 5) },
   { name: "Sixes", icon: "", isMatch: (d) => setOf(d, 6) },
+  {
+    name: "Extra",
+    icon: "",
+    isMatch: (dices, scores) => {
+      return totalOfTop(scores) >= 63 ? 35 : false;
+    },
+  },
 ];
 
-const categoriesLow: Category[] = [
+export const categoriesLow: Category[] = [
   {
     name: "Three of a kind",
     icon: "",
@@ -144,21 +151,21 @@ export function newPlayer(name: string): Player {
 
 export function newScores(): Scores {
   return {
-    Aces: 0,
-    Deuces: 0,
-    Threes: 0,
-    Fours: 0,
-    Fives: 0,
-    Sixes: 0,
-    Extra: 0,
+    Aces: null,
+    Deuces: null,
+    Threes: null,
+    Fours: null,
+    Fives: null,
+    Sixes: null,
+    Extra: null,
     //
-    ThreeOfAKind: 0,
-    FourOfAKind: 0,
-    FullHouse: 0,
-    SmallStraight: 0,
-    LargeStraight: 0,
-    Yacht: 0,
-    Chance: 0,
+    "Three of a kind": null,
+    "Four of a kind": null,
+    "Full house": null,
+    "Small straight": null,
+    "Large straight": null,
+    Yacht: null,
+    Chance: null,
   };
 }
 
@@ -189,4 +196,15 @@ function countOfEverything(dices: Dices): [number, number, number, number, numbe
 
 function sum(dices: Dices): number {
   return dices.reduce((acc, it) => acc + it, 0);
+}
+
+function totalOfTop(score: Scores): number {
+  return (
+    (score.Aces || 0) +
+    (score.Deuces || 0) +
+    (score.Threes || 0) +
+    (score.Fours || 0) +
+    (score.Fives || 0) +
+    (score.Sixes || 0)
+  );
 }

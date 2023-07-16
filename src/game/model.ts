@@ -1,12 +1,22 @@
-import { createEvent, createStore, sample } from "effector";
-import { CategoryName, Dice, newPlayer, Player, Stage, Stages, MaxPlayerCount } from "./game";
+import { combine, createEvent, createStore, sample } from "effector";
+import { CategoryName, Dice, newPlayer, Player, Stage, Stages, MaxPlayerCount, Dices } from "./game";
 
-let $state = createStore<Stage>({ stage: Stages.Init });
-let $players = createStore<Player[]>([]);
+export let $state = createStore<Stage>({ stage: Stages.Init });
+export let $players = createStore<Player[]>([]);
 
-let $keptDices = createStore<Dice[]>([]);
 let $playerNameInput = createStore("");
+let $keptDices = createStore<Dice[]>([]);
 let $thrownDices = createStore<Dice[]>([]);
+let $boxDices = createStore<Dice[]>([1, 1, 1, 1, 1]);
+
+export const $allDices = combine($keptDices, $thrownDices, (kept, thrown): Dices | null => {
+  let all = [...kept, ...thrown];
+
+  if (all.length === 5) {
+    return all as Dices;
+  }
+  return null;
+});
 
 let addPlayerClicked = createEvent();
 let removePlayerClicked = createEvent<number>();
@@ -48,3 +58,6 @@ $state
       return { stage: Stages.PlayerThrew, player: state.player };
     }
   });
+
+addPlayerClicked();
+addPlayerClicked();

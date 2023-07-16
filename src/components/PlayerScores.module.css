@@ -1,0 +1,22 @@
+.root {
+}
+
+.root p {
+  margin: 0;
+}
+
+.scoreRow {
+  display: grid;
+  grid-template-columns: 150px repeat(auto-fit, 50px);
+}
+
+.scoreCell {
+  box-shadow: inset 0 0 0 1px grey;
+  text-align: right;
+  padding: 4px;
+}
+
+.matched {
+  background-color: #f6de16;
+  /*box-shadow: inset 0 0 0 2px #f6de16;*/
+}
