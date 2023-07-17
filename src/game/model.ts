@@ -22,6 +22,8 @@ export let $newDices = createStore<FiveStateDice>([
   { val: 1, pos: 4, state: "box" },
 ]);
 
+$newDices.watch((d) => console.log(...d))
+
 export let $setDices = $newDices.map((dices) => {
   let res = dices.filter((d) => d.state === "table" || d.state === "kept").map((d) => d.val);
 
