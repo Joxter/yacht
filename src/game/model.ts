@@ -1,7 +1,7 @@
 import { combine, createEffect, createEvent, createStore, sample } from "effector";
 import { CategoryName, Dice, newPlayer, Player, Stage, Stages, MaxPlayerCount, Dices } from "./game";
 
-export let $state = createStore<Stage>({ stage: Stages.Init });
+export let $state = createStore<Stage>({ stage: Stages.PlayerStart, player: 0 });
 export let $players = createStore<Player[]>([]);
 
 export let $playerNameInput = createStore("");
@@ -22,12 +22,17 @@ export let $newDices = createStore<FiveStateDice>([
   { val: 1, pos: 4, state: "box" },
 ]);
 
-$newDices.watch((d) => console.log(...d));
-
 export let $setDices = $newDices.map((dices) => {
   let res = dices.filter((d) => d.state === "table" || d.state === "kept").map((d) => d.val);
 
   return res.length === 5 ? (res as Dices) : null;
+});
+
+export let $currentPlayer = $state.map((s) => {
+  if ("player" in s) {
+    return s.player;
+  }
+  return 0;
 });
 
 let addPlayerClicked = createEvent();
@@ -81,6 +86,23 @@ $players
     });
   });
 
+sample({
+  source: [$players, $state] as const,
+  clock: commitScoreClicked,
+  fn: ([players, game], { score, name }) => {
+    if (game.stage !== Stages.Init) {
+      let newPlayers = [...players];
+      newPlayers[game.player].scores = {
+        ...newPlayers[game.player].scores,
+        [name]: score,
+      };
+      return newPlayers;
+    }
+    return players;
+  },
+  target: $players,
+});
+
 $state
   .on(startGameClicked, () => {
     return { stage: Stages.PlayerStart, player: 0 };
@@ -92,15 +114,6 @@ $state
   });
 
 $newDices
-  .on(toBoxDicesClicked, (dices) => {
-    let res = dices.map((d) => {
-      if (d.state === "table") {
-        return { ...d, state: "box" };
-      }
-      return d;
-    }) as FiveStateDice;
-    return res;
-  })
   .on(throwDicesClicked, (dices) => {
     let res = dices.map((d) => {
       if (d.state === "box" || d.state === "table") {
