@@ -22,7 +22,7 @@ export let $newDices = createStore<FiveStateDice>([
   { val: 1, pos: 4, state: "box" },
 ]);
 
-$newDices.watch((d) => console.log(...d))
+$newDices.watch((d) => console.log(...d));
 
 export let $setDices = $newDices.map((dices) => {
   let res = dices.filter((d) => d.state === "table" || d.state === "kept").map((d) => d.val);
@@ -118,6 +118,24 @@ $newDices
           val: newDices.pop(),
           state: "table",
         };
+      }
+      return d;
+    }) as FiveStateDice;
+    return res;
+  })
+  .on(keepDiceClicked, (dices, { diceNumber }) => {
+    let res = dices.map((d) => {
+      if (d.pos === diceNumber) {
+        return { ...d, state: "kept" };
+      }
+      return d;
+    }) as FiveStateDice;
+    return res;
+  })
+  .on(discardDiceClicked, (dices, { diceNumber }) => {
+    let res = dices.map((d) => {
+      if (d.pos === diceNumber) {
+        return { ...d, state: "table" };
       }
       return d;
     }) as FiveStateDice;

@@ -1,6 +1,6 @@
 import type { Component } from "solid-js";
 import css from "./FiveDices.module.css";
-import { FiveStateDice, StateDice } from "../game/model";
+import { discardDiceClicked, FiveStateDice, keepDiceClicked, StateDice } from "../game/model";
 
 type Props = {
   dices: FiveStateDice;
@@ -39,8 +39,16 @@ export const DiceComp: Component<DiceCompProps> = (props) => {
     return `translateX(${x}px) translateY(${y}px)`;
   }
 
+  function onCLick() {
+    if (props.dice.state === "table") {
+      keepDiceClicked({ diceNumber: props.dice.pos });
+    } else if (props.dice.state === "kept") {
+      discardDiceClicked({ diceNumber: props.dice.pos });
+    }
+  }
+
   return (
-    <button class={css.dice} style={{ transform: st() }}>
+    <button class={css.dice} style={{ transform: st() }} onClick={onCLick}>
       {props.dice.state === "spinning" ? <div class={css.spinner}></div> : props.dice.val}
     </button>
   );
