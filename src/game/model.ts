@@ -1,7 +1,7 @@
 import { combine, createEffect, createEvent, createStore, sample } from "effector";
 import { CategoryName, Dice, newPlayer, Player, Stage, Stages, MaxPlayerCount, Dices } from "./game";
 
-export let $state = createStore<Stage>({ stage: Stages.PlayerStart, player: 0 });
+export let $state = createStore<Stage>({ stage: Stages.PlayerStart, player: 0, step: 1 });
 export let $players = createStore<Player[]>([]);
 
 export let $playerNameInput = createStore("");
@@ -105,11 +105,15 @@ sample({
 
 $state
   .on(startGameClicked, () => {
-    return { stage: Stages.PlayerStart, player: 0 };
+    return { stage: Stages.PlayerStart, player: 0, step: 1 };
   })
   .on(throwDicesClicked, (state) => {
-    if (state.stage === Stages.PlayerStart) {
-      return { stage: Stages.PlayerThrew, player: state.player };
+    if (state.stage === Stages.PlayerStart && state.step < 3) {
+      return {
+        stage: Stages.PlayerThrew,
+        player: state.player,
+        step: (state.step + 1) as 1 | 2 | 3,
+      };
     }
   });
 

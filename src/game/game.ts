@@ -3,9 +3,10 @@ export type Dices = [Dice, Dice, Dice, Dice, Dice];
 
 export const Stages = {
   Init: "Init",
-  PlayerStart: "PlayerStart",
-  PlayerThrew: "PlayerThrew",
-  PlayerThinking: "PlayerThinking",
+  PlayerStart: "PlayerStart", // before roll
+  PlayerThrew: "PlayerRolling", // rolling
+  PlayerThinking: "PlayerThinking", // mixing dices
+  ScoreCommitted: "ScoreCommitted", // score committed
   Finish: "Finish",
 } as const;
 
@@ -13,9 +14,10 @@ export const MaxPlayerCount = 6;
 
 export type Stage =
   | { stage: typeof Stages.Init }
-  | { stage: typeof Stages.PlayerStart; player: number }
-  | { stage: typeof Stages.PlayerThrew; player: number }
-  | { stage: typeof Stages.PlayerThinking; player: number }
+  | { stage: typeof Stages.PlayerStart; player: number; step: 1 | 2 | 3 }
+  | { stage: typeof Stages.PlayerThrew; player: number; step: 1 | 2 | 3 }
+  | { stage: typeof Stages.PlayerThinking; player: number; step: 1 | 2 | 3 }
+  | { stage: typeof Stages.ScoreCommitted; player: number }
   | { stage: typeof Stages.Finish; player: number };
 
 export type Scores = {

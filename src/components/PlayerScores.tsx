@@ -56,24 +56,40 @@ export const ScoreRow: Component<ScoreRowProps> = (props) => {
     <div classList={{ [css.scoreRow]: true }}>
       <p>{name}</p>
       {props.players.map((p, i) => {
-        if (p.scores[name]) {
-          return <p class={css.scoreCell}>{p.scores[name]}</p>;
+        let isCaptured = p.scores[name] !== null;
+
+        if (isCaptured) {
+          return (
+            <button type={"button"} disabled class={css.scoreCell}>
+              {p.scores[name]}
+            </button>
+          );
         }
 
-        const match = props.dices !== null && props.currentPlayer === i ? isMatch(props.dices, p.scores) : false;
+        let isCurrentPlayer = props.currentPlayer === i;
 
-        if (match) {
+        if (isCurrentPlayer && props.dices) {
+          const match = isMatch(props.dices, p.scores) || 0;
+
           return (
             <button
               type={"button"}
               onClick={() => commitScoreClicked({ score: match, name: name })}
-              class={css.matched + " " + css.scoreCell}
+              classList={{
+                [css.scoreCell]: true,
+                [css.matched]: !isCaptured,
+              }}
             >
               {match}
             </button>
           );
         }
-        return <p class={css.scoreCell}>-</p>;
+
+        return (
+          <button type={"button"} disabled class={css.scoreCell}>
+            {" "}
+          </button>
+        );
       })}
     </div>
   );
