@@ -1,6 +1,7 @@
 import type { Component } from "solid-js";
 import css from "./FiveDices.module.css";
-import { discardDiceClicked, FiveStateDice, keepDiceClicked, StateDice } from "../game/model";
+import { discardDiceClicked, FiveStateDice, keepDiceClicked } from "../game/model";
+import { Dice } from "../game/game";
 
 type Props = {
   dices: FiveStateDice;
@@ -22,7 +23,7 @@ export const FiveDices: Component<Props> = (props) => {
 };
 
 type DiceCompProps = {
-  dice: StateDice;
+  dice: Dice;
 };
 
 export const DiceComp: Component<DiceCompProps> = (props) => {
@@ -30,7 +31,7 @@ export const DiceComp: Component<DiceCompProps> = (props) => {
     let y = {
       kept: 0,
       table: 50 + 8,
-      box: 50 + 8 + 50 + 8,
+      cup: 50 + 8 + 50 + 8,
       spinning: 50 + 8 + 50 + 8, // todo move to css classes: .kept .table, ...
     }[props.dice.state];
 

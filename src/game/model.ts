@@ -1,29 +1,23 @@
 import { combine, createEffect, createEvent, createStore, sample } from "effector";
-import { CategoryName, Dice, newPlayer, Player, Stage, Stages, MaxPlayerCount, Dices } from "./game";
+import { CategoryName, DiceVal, newPlayer, Player, Stage, Stages, MaxPlayerCount, Dices, Dice } from "./game";
 
 export let $state = createStore<Stage>({ stage: Stages.PlayerStart, player: 0, step: 1 });
 export let $players = createStore<Player[]>([]);
 
 export let $playerNameInput = createStore("");
 
-export type StateDice = {
-  val: Dice;
-  pos: number;
-  state: "kept" | "table" | "box" | "spinning";
-};
-
-export type FiveStateDice = [StateDice, StateDice, StateDice, StateDice, StateDice];
+export type FiveStateDice = [Dice, Dice, Dice, Dice, Dice];
 
 export let $newDices = createStore<FiveStateDice>([
-  { val: 1, pos: 0, state: "box" },
-  { val: 1, pos: 1, state: "box" },
-  { val: 1, pos: 2, state: "box" },
-  { val: 1, pos: 3, state: "box" },
-  { val: 1, pos: 4, state: "box" },
+  { val: 1, pos: 0, state: "cup" },
+  { val: 1, pos: 1, state: "cup" },
+  { val: 1, pos: 2, state: "cup" },
+  { val: 1, pos: 3, state: "cup" },
+  { val: 1, pos: 4, state: "cup" },
 ]);
 
 export let $setDices = $newDices.map((dices) => {
-  let res = dices.filter((d) => d.state === "table" || d.state === "kept").map((d) => d.val);
+  let res = dices.filter((d) => d.state === "table" || d.state === "kept");
 
   return res.length === 5 ? (res as Dices) : null;
 });
@@ -46,21 +40,23 @@ export let keepDiceClicked = createEvent<{ diceNumber: number }>();
 export let discardDiceClicked = createEvent<{ diceNumber: number }>();
 export let commitScoreClicked = createEvent<{ name: CategoryName; score: number }>();
 
-let throwDicesFx = createEffect(async (dices: Dice[]): Promise<Dice[]> => {
+let throwDicesFx = createEffect(async (dices: Dice[]): Promise<DiceVal[]> => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  let res = dices.map(() => {
-    return (Math.floor(Math.random() * 6) + 1) as Dice;
-  });
+  let newVals = dices
+    .map(() => {
+      return (Math.floor(Math.random() * 6) + 1) as DiceVal;
+    })
+    .sort((a, b) => b - a);
 
-  return res;
+  return newVals;
 });
 
 sample({
   source: $newDices,
   clock: throwDicesClicked,
   fn: (dices) => {
-    return dices.filter((d) => d.state !== "kept").map((d) => d.val);
+    return dices.filter((d) => d.state !== "kept");
   },
   target: throwDicesFx,
 });
@@ -120,7 +116,7 @@ $state
 $newDices
   .on(throwDicesClicked, (dices) => {
     let res = dices.map((d) => {
-      if (d.state === "box" || d.state === "table") {
+      if (d.state !== "kept") {
         return { ...d, state: "spinning" };
       }
       return d;

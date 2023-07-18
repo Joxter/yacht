@@ -1,4 +1,9 @@
-export type Dice = 1 | 2 | 3 | 4 | 5 | 6;
+export type DiceVal = 1 | 2 | 3 | 4 | 5 | 6;
+export type Dice = {
+  val: DiceVal;
+  pos: number;
+  state: "kept" | "table" | "cup" | "spinning";
+};
 export type Dices = [Dice, Dice, Dice, Dice, Dice];
 
 export const Stages = {
@@ -171,7 +176,7 @@ export function newScores(): Scores {
   };
 }
 
-function setOf(dices: Dices, n: Dice): number | false {
+function setOf(dices: Dices, n: DiceVal): number | false {
   let cnt = countOf(dices, n);
   if (cnt) {
     return cnt * n;
@@ -179,7 +184,7 @@ function setOf(dices: Dices, n: Dice): number | false {
   return false;
 }
 
-function countOf(dices: Dices, n: Dice): number {
+function countOf(dices: Dices, n: DiceVal): number {
   return countOfEverything(dices)[n - 1];
 }
 
@@ -192,12 +197,12 @@ function countOf(dices: Dices, n: Dice): number {
  * */
 function countOfEverything(dices: Dices): [number, number, number, number, number, number] {
   let res = [0, 0, 0, 0, 0, 0] as [number, number, number, number, number, number];
-  dices.forEach((d) => res[d - 1]++);
+  dices.forEach((d) => res[d.val - 1]++);
   return res;
 }
 
 function sum(dices: Dices): number {
-  return dices.reduce((acc, it) => acc + it, 0);
+  return dices.reduce((acc, dice) => acc + dice.val, 0);
 }
 
 function totalOfTop(score: Scores): number {
