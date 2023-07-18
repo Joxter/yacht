@@ -3,11 +3,17 @@ import type { Component } from "solid-js";
 import css from "./App.module.css";
 import { PlayerScores } from "./components/PlayerScores";
 import { useUnit } from "effector-solid";
-import { $setDices, $players, $newDices, throwDicesClicked, $currentPlayer } from "./game/model";
+import { $setDices, $players, $dices, throwDicesClicked, $currentPlayer, $canThrow } from "./game/model";
 import { FiveDices } from "./components/FiveDices";
 
 const App: Component = () => {
-  let [allDices, newDices, players, currentPlayer] = useUnit([$setDices, $newDices, $players, $currentPlayer]);
+    let [allDices, newDices, players, currentPlayer, canThrow] = useUnit([
+    $setDices,
+    $dices,
+    $players,
+    $currentPlayer,
+    $canThrow,
+  ]);
 
   return (
     <div class={css.root}>
@@ -21,7 +27,7 @@ const App: Component = () => {
           <div>
             <FiveDices dices={newDices()} />
             <div>
-              <button type={"button"} onClick={() => throwDicesClicked()}>
+              <button disabled={!canThrow()} type={"button"} onClick={() => throwDicesClicked()}>
                 throw dices
               </button>
             </div>

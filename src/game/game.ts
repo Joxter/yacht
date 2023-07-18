@@ -7,10 +7,10 @@ export type Dice = {
 };
 export type Dices = [Dice, Dice, Dice, Dice, Dice];
 
-export const Stages = {
+export const GameStatuses = {
   Init: "Init",
   PlayerStart: "PlayerStart", // before roll
-  PlayerThrew: "PlayerRolling", // rolling
+  PlayerThrew: "PlayerThrew", // rolling
   PlayerThinking: "PlayerThinking", // mixing dices
   ScoreCommitted: "ScoreCommitted", // score committed
   Finish: "Finish",
@@ -19,12 +19,12 @@ export const Stages = {
 export const MaxPlayerCount = 6;
 
 export type Stage =
-  | { stage: typeof Stages.Init }
-  | { stage: typeof Stages.PlayerStart; player: number; step: 1 | 2 | 3 }
-  | { stage: typeof Stages.PlayerThrew; player: number; step: 1 | 2 | 3 }
-  | { stage: typeof Stages.PlayerThinking; player: number; step: 1 | 2 | 3 }
-  | { stage: typeof Stages.ScoreCommitted; player: number }
-  | { stage: typeof Stages.Finish; player: number };
+  | { status: typeof GameStatuses.Init }
+  | { status: typeof GameStatuses.PlayerStart; player: number; step: number }
+  | { status: typeof GameStatuses.PlayerThrew; player: number; step: number }
+  | { status: typeof GameStatuses.PlayerThinking; player: number; step: number }
+  | { status: typeof GameStatuses.ScoreCommitted; player: number }
+  | { status: typeof GameStatuses.Finish; player: number };
 
 export type Scores = {
   Aces: number | null;
@@ -216,4 +216,70 @@ function totalOfTop(score: Scores): number {
     (score.Fives || 0) +
     (score.Sixes || 0)
   );
+}
+
+export function createGame(): { stage: Stage; players: Player[]; dices: Dices } {
+  let stage: Stage = {
+    status: GameStatuses.Init,
+  };
+
+  let players: Player[] = [];
+
+  let dices: Dices = [
+    { val: 1, pos: 0, state: "cup" },
+    { val: 1, pos: 1, state: "cup" },
+    { val: 1, pos: 2, state: "cup" },
+    { val: 1, pos: 3, state: "cup" },
+    { val: 1, pos: 4, state: "cup" },
+  ];
+
+  return { stage, players, dices };
+}
+
+export function dicesToSpinning(dices: Dices): Dices {
+  let res = dices.map((d) => {
+    if (d.state !== "kept") {
+      return { ...d, state: "spinning" };
+    }
+    return d;
+  }) as Dices;
+
+  return res;
+}
+
+export function throwDices(game: Stage, dices: Dices): { game: Stage; dices: Dices } {
+  if ("step" in game && game.step <= 3) {
+    let diceVals = dices
+      .filter((d) => d.state === "spinning")
+      .map(() => {
+        return (Math.floor(Math.random() * 6) + 1) as DiceVal;
+      })
+      .sort((a, b) => b - a);
+
+    let newDices = dices.map((d) => {
+      if (d.state === "spinning") {
+        return {
+          pos: d.pos,
+          val: diceVals.pop(),
+          state: "table",
+        };
+      }
+      return d;
+    }) as Dices;
+
+    let newGame = { ...game };
+    newGame.step++;
+
+    return { game: newGame, dices: newDices };
+  }
+  return { game, dices };
+}
+
+export function startGame(game: Stage): Stage {
+  // todo add required checks
+  return { status: GameStatuses.PlayerStart, player: 0, step: 1 };
+}
+
+export function canThrow(game: Stage): boolean {
+  return "step" in game && game.step <= 3;
 }

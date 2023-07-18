@@ -1,10 +1,10 @@
 import type { Component } from "solid-js";
 import css from "./FiveDices.module.css";
-import { discardDiceClicked, FiveStateDice, keepDiceClicked } from "../game/model";
-import { Dice } from "../game/game";
+import { discardDiceClicked, keepDiceClicked } from "../game/model";
+import { Dice, Dices } from "../game/game";
 
 type Props = {
-  dices: FiveStateDice;
+  dices: Dices;
 };
 
 export const FiveDices: Component<Props> = (props) => {

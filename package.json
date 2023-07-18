@@ -5,7 +5,8 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
+    "types": "tsc",
     "serve": "vite preview"
   },
   "license": "MIT",
