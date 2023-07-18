@@ -1,4 +1,5 @@
 export type DiceVal = 1 | 2 | 3 | 4 | 5 | 6;
+export type DiceSum = [number, number, number, number, number, number];
 export type Dice = {
   val: DiceVal;
   pos: number;
@@ -54,7 +55,8 @@ export type Player = {
 export type Category = {
   name: CategoryName;
   icon: string;
-  isMatch: (dices: Dices, scores: Scores) => number | false;
+  // TODO dices -> count of everything
+  isMatch: (dices: DiceSum, scores: Scores) => number | false;
 };
 
 export const categoriesTop: Category[] = [
@@ -77,8 +79,8 @@ export const categoriesLow: Category[] = [
   {
     name: "Three of a kind",
     icon: "",
-    isMatch: (dices: Dices) => {
-      let has3OfSomething = countOfEverything(dices).find((cnt) => {
+    isMatch: (dices: DiceSum) => {
+      let has3OfSomething = dices.find((cnt) => {
         return cnt >= 3;
       });
       return has3OfSomething ? sum(dices) : false;
@@ -87,8 +89,8 @@ export const categoriesLow: Category[] = [
   {
     name: "Four of a kind",
     icon: "",
-    isMatch: (dices: Dices) => {
-      let has4OfSomething = countOfEverything(dices).find((cnt) => {
+    isMatch: (dices: DiceSum) => {
+      let has4OfSomething = dices.find((cnt) => {
         return cnt >= 4;
       });
       return has4OfSomething ? sum(dices) : false;
@@ -97,8 +99,8 @@ export const categoriesLow: Category[] = [
   {
     name: "Full house",
     icon: "",
-    isMatch: (dices: Dices) => {
-      let cnt = countOfEverything(dices);
+    isMatch: (dices: DiceSum) => {
+      let cnt = dices;
       if (cnt.includes(2) && cnt.includes(3)) {
         return 25;
       }
@@ -108,8 +110,8 @@ export const categoriesLow: Category[] = [
   {
     name: "Small straight",
     icon: "",
-    isMatch: (dices: Dices) => {
-      let cnt = countOfEverything(dices);
+    isMatch: (dices: DiceSum) => {
+      let cnt = dices;
       if (
         (cnt[0] && cnt[1] && cnt[2] && cnt[3]) ||
         (cnt[1] && cnt[2] && cnt[3] && cnt[4]) ||
@@ -123,8 +125,8 @@ export const categoriesLow: Category[] = [
   {
     name: "Large straight",
     icon: "",
-    isMatch: (dices: Dices) => {
-      let cnt = countOfEverything(dices);
+    isMatch: (dices: DiceSum) => {
+      let cnt = dices;
       if ((cnt[0] && cnt[1] && cnt[2] && cnt[3] && cnt[4]) || (cnt[1] && cnt[2] && cnt[3] && cnt[4] && cnt[5])) {
         return 40;
       }
@@ -134,8 +136,8 @@ export const categoriesLow: Category[] = [
   {
     name: "Yacht",
     icon: "",
-    isMatch: (dices: Dices) => {
-      if (dices[0] === dices[1] && dices[1] === dices[2] && dices[2] === dices[3] && dices[3] === dices[4]) {
+    isMatch: (dices: DiceSum) => {
+      if (dices.includes(5)) {
         return 50;
       }
       return false;
@@ -144,7 +146,7 @@ export const categoriesLow: Category[] = [
   {
     name: "Chance",
     icon: "",
-    isMatch: (dices: Dices) => {
+    isMatch: (dices: DiceSum) => {
       return sum(dices);
     },
   },
@@ -176,7 +178,7 @@ export function newScores(): Scores {
   };
 }
 
-function setOf(dices: Dices, n: DiceVal): number | false {
+function setOf(dices: DiceSum, n: DiceVal): number | false {
   let cnt = countOf(dices, n);
   if (cnt) {
     return cnt * n;
@@ -184,8 +186,8 @@ function setOf(dices: Dices, n: DiceVal): number | false {
   return false;
 }
 
-function countOf(dices: Dices, n: DiceVal): number {
-  return countOfEverything(dices)[n - 1];
+function countOf(dices: DiceSum, n: DiceVal): number {
+  return dices[n - 1];
 }
 
 /**
@@ -195,14 +197,14 @@ function countOf(dices: Dices, n: DiceVal): number {
  *    input dices  [1, 2, 2, 5, 6]
  *    result       [1, 2, 0, 0, 1, 1]
  * */
-function countOfEverything(dices: Dices): [number, number, number, number, number, number] {
-  let res = [0, 0, 0, 0, 0, 0] as [number, number, number, number, number, number];
+export function countOfEverything(dices: Dices): DiceSum {
+  let res = [0, 0, 0, 0, 0, 0] as DiceSum;
   dices.forEach((d) => res[d.val - 1]++);
   return res;
 }
 
-function sum(dices: Dices): number {
-  return dices.reduce((acc, dice) => acc + dice.val, 0);
+function sum(dices: DiceSum): number {
+  return dices.reduce((acc, dice, i) => acc + dice * (i + 1), 0);
 }
 
 function totalOfTop(score: Scores): number {

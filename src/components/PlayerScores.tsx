@@ -1,5 +1,5 @@
 import type { Component } from "solid-js";
-import { Scores, categoriesLow, categoriesTop, Dices, Player, Category } from "../game/game";
+import { Scores, categoriesLow, categoriesTop, Dices, Player, Category, countOfEverything } from "../game/game";
 import css from "./PlayerScores.module.css";
 import { commitScoreClicked } from "../game/model";
 
@@ -69,7 +69,8 @@ export const ScoreRow: Component<ScoreRowProps> = (props) => {
         let isCurrentPlayer = props.currentPlayer === i;
 
         if (isCurrentPlayer && props.dices) {
-          const match = isMatch(props.dices, p.scores) || 0;
+          // todo remove countOfEverything(props.dices) from view
+          const match = isMatch(countOfEverything(props.dices), p.scores) || 0;
 
           return (
             <button
