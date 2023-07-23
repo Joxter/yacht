@@ -10,6 +10,8 @@ import {
   canSpin,
   canThrow,
   throwDicesStart,
+  commitScores,
+  createDices,
 } from "./game";
 
 let game = createGame();
@@ -91,19 +93,25 @@ $players
 sample({
   source: [$players, $game] as const,
   clock: commitScoreClicked,
-  fn: ([players, game], { score, name }) => {
-    if ("player" in game.stage) {
-      let newPlayers = [...players];
-      newPlayers[game.stage.player].scores = {
-        ...newPlayers[game.stage.player].scores,
-        [name]: score,
-      };
-      return newPlayers;
-    }
-    return players;
+  fn: ([players, game], payload) => {
+    return commitScores(game.stage, players, payload).players;
   },
   target: $players,
 });
+
+sample({
+  source: [$players, $game] as const,
+  clock: commitScoreClicked,
+  fn: ([players, game], payload) => {
+    return {
+      stage: commitScores(game.stage, players, payload).stage,
+      dices: createDices(),
+    };
+  },
+  target: $game,
+});
+
+commitScoreClicked.watch(console.log);
 
 sample({
   source: [$players, $game] as const,
@@ -134,5 +142,9 @@ $game
     return { ...game, dices: res };
   });
 
-// startGameClicked();
 addPlayerClicked();
+addPlayerClicked();
+playerNameChanged({ n: 0, name: "aaa" });
+playerNameChanged({ n: 1, name: "bbb" });
+
+startGameClicked();

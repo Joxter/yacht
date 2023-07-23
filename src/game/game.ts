@@ -208,6 +208,15 @@ function totalOfTop(score: Scores): number {
     (score.Sixes || 0)
   );
 }
+export function createDices(): Dices {
+  return [
+    { val: 1, pos: 0, state: "cup" },
+    { val: 1, pos: 1, state: "cup" },
+    { val: 1, pos: 2, state: "cup" },
+    { val: 1, pos: 3, state: "cup" },
+    { val: 1, pos: 4, state: "cup" },
+  ] as Dices;
+}
 
 export function createGame(): { stage: Stage; players: Player[]; dices: Dices } {
   let stage: Stage = {
@@ -215,14 +224,7 @@ export function createGame(): { stage: Stage; players: Player[]; dices: Dices } 
   };
 
   let players: Player[] = [];
-
-  let dices: Dices = [
-    { val: 1, pos: 0, state: "cup" },
-    { val: 1, pos: 1, state: "cup" },
-    { val: 1, pos: 2, state: "cup" },
-    { val: 1, pos: 3, state: "cup" },
-    { val: 1, pos: 4, state: "cup" },
-  ];
+  let dices = createDices();
 
   return { stage, players, dices };
 }
@@ -299,4 +301,27 @@ export function tryThrow(game: Stage): false | Stage {
 
 export function canThrow(game: Stage): boolean {
   return game.status === GameStatuses.PlayerMove && game.spinning;
+}
+
+export function commitScores(
+  stage: Stage,
+  players: Player[],
+  payload: { score: number; name: CategoryName },
+): { stage: Stage; players: Player[] } {
+  if (stage.status === GameStatuses.PlayerMove) {
+    let newPlayers = [...players];
+    newPlayers[stage.player].scores = {
+      ...newPlayers[stage.player].scores,
+      [payload.name]: payload.score,
+    };
+    return {
+      players: newPlayers,
+      stage: {
+        ...stage,
+        player: (stage.player + 1) % players.length,
+        step: 0,
+      },
+    };
+  }
+  return { players, stage };
 }
