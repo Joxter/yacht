@@ -33,8 +33,8 @@ const App: Component = () => {
       <div class={css.content}>
         <h1>Yacht</h1>
 
-        <div style={{ display: "flex" }}>
-          <div style={{ width: "300px" }}>
+        <div style={{ display: "grid", gap: "8px", "grid-template-columns": "auto 1fr" }}>
+          <div>
             <PlayerScores dices={allDices()} currentPlayer={currentPlayer()} players={players()} />
           </div>
           <div>
@@ -51,7 +51,7 @@ const App: Component = () => {
                 </button>
               </Show>
             </div>
-            <p>{JSON.stringify(game())}</p>
+            <p style={{}}>stage: {JSON.stringify(game().stage)}</p>
           </div>
         </div>
       </div>

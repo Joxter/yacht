@@ -15,12 +15,10 @@ import {
 let game = createGame();
 
 export let $game = createStore({
-  stage: startGame(game.stage),
+  stage: game.stage,
   dices: game.dices,
 });
 export let $players = createStore(game.players);
-
-export let $playerNameInput = createStore("");
 
 export let $dices = $game.map((it) => it.dices);
 
@@ -40,10 +38,10 @@ export let $currentPlayer = $game.map((s) => {
 export let $canSpin = $game.map((g) => canSpin(g.stage));
 export let $canThrow = $game.map((g) => canThrow(g.stage));
 
-let addPlayerClicked = createEvent();
-let removePlayerClicked = createEvent<number>();
-let playerNameChanged = createEvent<{ n: number; name: string }>();
-let startGameClicked = createEvent();
+export let addPlayerClicked = createEvent();
+export let removePlayerClicked = createEvent<number>();
+export let playerNameChanged = createEvent<{ n: number; name: string }>();
+export let startGameClicked = createEvent();
 
 export let spinDicesClicked = createEvent();
 export let throwDicesClicked = createEvent();
@@ -74,22 +72,20 @@ sample({
 $players
   .on(addPlayerClicked, (players) => {
     if (players.length < MaxPlayerCount) {
-      return [...players, newPlayer("")];
+      return [...players, newPlayer()];
     }
     return players;
   })
   .on(removePlayerClicked, (players, n) => {
-    return players.filter((p) => p.n !== n);
+    if (players.length < 2) return players;
+    let newPlayers = [...players];
+    newPlayers.splice(n, 1);
+    return newPlayers;
   })
   .on(playerNameChanged, (players, { n, name }) => {
-    return players.map((p) => {
-      return p.n === n ? { ...p, name } : p;
-    });
-  })
-  .on(startGameClicked, (players) => {
-    return players.map((p, i) => {
-      return { ...p, n: i };
-    });
+    let newPlayers = [...players];
+    newPlayers[n].name = name;
+    return newPlayers;
   });
 
 sample({
@@ -107,6 +103,15 @@ sample({
     return players;
   },
   target: $players,
+});
+
+sample({
+  source: [$players, $game] as const,
+  clock: startGameClicked,
+  fn: ([players, game]) => {
+    return { ...game, stage: startGame(game.stage, players) };
+  },
+  target: $game,
 });
 
 $game
@@ -129,5 +134,5 @@ $game
     return { ...game, dices: res };
   });
 
-addPlayerClicked();
+// startGameClicked();
 addPlayerClicked();

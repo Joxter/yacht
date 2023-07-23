@@ -7,7 +7,6 @@
 
 .scoreRow {
   display: grid;
-  grid-template-columns: 150px repeat(auto-fit, 50px);
 }
 
 .scoreCell {

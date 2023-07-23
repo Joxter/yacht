@@ -42,7 +42,7 @@ export type CategoryName = keyof Scores;
 
 export type Player = {
   name: string;
-  n: number;
+  // n: number;
   scores: Scores;
 };
 
@@ -145,10 +145,8 @@ export const categoriesLow: Category[] = [
   },
 ];
 
-let playerCounter = 0;
-export function newPlayer(name: string): Player {
-  playerCounter++;
-  return { name, n: playerCounter, scores: newScores() };
+export function newPlayer(): Player {
+  return { name: "", scores: newScores() };
 }
 
 export function newScores(): Scores {
@@ -272,9 +270,13 @@ export function throwDicesEnd(stage: Stage, dices: Dices): { stage: Stage; dices
   return { dices: newDices, stage: maybeGame };
 }
 
-export function startGame(game: Stage): Stage {
-  // todo add required checks
-  return { status: GameStatuses.PlayerMove, player: 0, step: 1, spinning: false };
+export function startGame(stage: Stage, players: Player[]): Stage {
+  if (stage.status === GameStatuses.Init) {
+    if (players.every((p) => p.name.trim() !== "")) {
+      return { status: GameStatuses.PlayerMove, player: 0, step: 0, spinning: false };
+    }
+  }
+  return stage;
 }
 
 export function canSpin(game: Stage): boolean {
