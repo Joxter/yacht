@@ -7,6 +7,8 @@ export type Dice = {
 };
 export type Dices = [Dice, Dice, Dice, Dice, Dice];
 
+// todo Store FULL state (dices, players, stage) in one single variable
+
 export const GameStatuses = {
   Init: "Init",
   PlayerMove: "PlayerMove",
@@ -18,7 +20,7 @@ export const MaxPlayerCount = 6;
 export type Stage =
   | { status: typeof GameStatuses.Init }
   | { status: typeof GameStatuses.PlayerMove; player: number; step: number; spinning: boolean }
-  | { status: typeof GameStatuses.Finish; player: number };
+  | { status: typeof GameStatuses.Finish; winners: number[] };
 
 export type Scores = {
   Aces: number | null;
@@ -49,7 +51,7 @@ export type Player = {
 export type Category = {
   name: CategoryName;
   icon: string;
-  isMatch: (dices: DiceSum, scores: Scores) => number | false;
+  isMatch: (dices: DiceSum, scores: Scores) => number | false; // todo Remove `false`? maybe just 0 is enough
 };
 
 export const categoriesTop: Category[] = [
@@ -59,14 +61,15 @@ export const categoriesTop: Category[] = [
   { name: "Fours", icon: "", isMatch: (d) => setOf(d, 4) },
   { name: "Fives", icon: "", isMatch: (d) => setOf(d, 5) },
   { name: "Sixes", icon: "", isMatch: (d) => setOf(d, 6) },
-  {
-    name: "Extra",
-    icon: "",
-    isMatch: (dices, scores) => {
-      return totalOfTop(scores) >= 63 ? 35 : false;
-    },
-  },
 ];
+
+export let extraCategory: Category = {
+  name: "Extra",
+  icon: "",
+  isMatch: (_: any, scores) => {
+    return totalOfTop(scores) >= 63 ? 35 : false;
+  },
+};
 
 export const categoriesLow: Category[] = [
   {
@@ -208,6 +211,29 @@ function totalOfTop(score: Scores): number {
     (score.Sixes || 0)
   );
 }
+
+function ifAllTopCommitted(score: Scores): boolean {
+  return (
+    score.Aces !== null &&
+    score.Deuces !== null &&
+    score.Threes !== null &&
+    score.Fours !== null &&
+    score.Fives !== null &&
+    score.Sixes !== null
+  );
+}
+
+function isTopCategory(name: CategoryName): boolean {
+  return (
+    name === "Aces" ||
+    name === "Deuces" ||
+    name === "Threes" ||
+    name === "Fours" ||
+    name === "Fives" ||
+    name === "Sixes"
+  );
+}
+
 export function createDices(): Dices {
   return [
     { val: 1, pos: 0, state: "cup" },
@@ -308,20 +334,69 @@ export function commitScores(
   players: Player[],
   payload: { score: number; name: CategoryName },
 ): { stage: Stage; players: Player[] } {
-  if (stage.status === GameStatuses.PlayerMove) {
+  if (stage.status === GameStatuses.PlayerMove && payload.name !== "Extra") {
     let newPlayers = [...players];
     newPlayers[stage.player].scores = {
       ...newPlayers[stage.player].scores,
       [payload.name]: payload.score,
     };
+
+    if (isTopCategory(payload.name) && ifAllTopCommitted(newPlayers[stage.player].scores)) {
+      let extraScores = extraCategory.isMatch([] as any, newPlayers[stage.player].scores) || 0;
+
+      newPlayers[stage.player].scores = {
+        ...newPlayers[stage.player].scores,
+        Extra: extraScores,
+      };
+    }
+
+    let nextPlayerId = (stage.player + 1) % players.length;
+
+    if (isAllCommitted(newPlayers[nextPlayerId])) {
+      return {
+        players: newPlayers,
+        stage: {
+          status: GameStatuses.Finish,
+          winners: findWinners(newPlayers),
+        },
+      };
+    }
+
     return {
       players: newPlayers,
       stage: {
         ...stage,
-        player: (stage.player + 1) % players.length,
+        player: nextPlayerId,
         step: 0,
       },
     };
   }
   return { players, stage };
+}
+
+function isAllCommitted(player: Player): boolean {
+  return Object.values(player.scores).every((n) => n !== null);
+}
+
+function totalScore(player: Player): number {
+  let vals = Object.values(player.scores);
+
+  let total = 0;
+  for (let i = 0; i < vals.length; i++) {
+    total += vals[i] || 0;
+  }
+  return total;
+}
+
+function findWinners(players: Player[]): number[] {
+  let finalScores = players.map((p) => totalScore(p));
+  let max = Math.max(...finalScores);
+
+  let winners: number[] = [];
+  for (let i = 0; i < finalScores.length; i++) {
+    if (finalScores[i] === max) {
+      winners.push(i);
+    }
+  }
+  return winners;
 }

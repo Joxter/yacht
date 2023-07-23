@@ -111,8 +111,6 @@ sample({
   target: $game,
 });
 
-commitScoreClicked.watch(console.log);
-
 sample({
   source: [$players, $game] as const,
   clock: startGameClicked,
