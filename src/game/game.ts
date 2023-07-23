@@ -308,11 +308,11 @@ export function startGame(stage: Stage, players: Player[]): Stage {
 }
 
 export function canSpin(game: Stage): boolean {
-  return game.status === GameStatuses.PlayerMove && !game.spinning && game.step <= 3;
+  return game.status === GameStatuses.PlayerMove && !game.spinning && game.step < 3;
 }
 
 export function trySpin(game: Stage): false | Stage {
-  if (game.status === GameStatuses.PlayerMove && game.step <= 3) {
+  if (game.status === GameStatuses.PlayerMove && game.step < 3) {
     return { ...game, spinning: true, step: game.step + 1 };
   }
   return false;

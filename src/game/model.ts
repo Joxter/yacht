@@ -140,9 +140,11 @@ $game
     return { ...game, dices: res };
   });
 
+$game.reset(startGameClicked);
+
 addPlayerClicked();
 addPlayerClicked();
 playerNameChanged({ n: 0, name: "aaa" });
 playerNameChanged({ n: 1, name: "bbb" });
 
-startGameClicked();
+// startGameClicked();

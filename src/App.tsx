@@ -15,7 +15,7 @@ import {
   $game,
 } from "./game/model";
 import { FiveDices } from "./components/FiveDices";
-import { canSpin } from "./game/game";
+import { canSpin, GameStatuses } from "./game/game";
 
 const App: Component = () => {
   let [allDices, newDices, players, currentPlayer, canSpin, canThrow, game] = useUnit([
@@ -35,7 +35,12 @@ const App: Component = () => {
 
         <div style={{ display: "grid", gap: "8px", "grid-template-columns": "auto 1fr" }}>
           <div>
-            <PlayerScores dices={allDices()} currentPlayer={currentPlayer()} players={players()} />
+            <PlayerScores
+              dices={allDices()}
+              currentPlayer={currentPlayer()}
+              players={players()}
+              editable={game().stage.status === GameStatuses.Init}
+            />
           </div>
           <div>
             <FiveDices dices={newDices()} />

@@ -17,11 +17,13 @@ import {
   removePlayerClicked,
   startGameClicked,
 } from "../game/model";
+import { Show } from "solid-js";
 
 type Props = {
   players: Player[];
   currentPlayer: number;
   dices: Dices | null;
+  editable: boolean;
 };
 
 export const PlayerScores: Component<Props> = (props) => {
@@ -42,15 +44,19 @@ export const PlayerScores: Component<Props> = (props) => {
                   playerNameChanged({ n: i, name: ev.target.value });
                 }}
               />
-              <button type={"button"} onClick={() => removePlayerClicked(i)}>
-                delete
-              </button>
+              <Show when={props.editable}>
+                <button type={"button"} onClick={() => removePlayerClicked(i)}>
+                  delete
+                </button>
+              </Show>
             </div>
           );
         })}
-        <button type={"button"} onClick={() => addPlayerClicked()}>
-          add new player
-        </button>
+        <Show when={props.editable}>
+          <button type={"button"} onClick={() => addPlayerClicked()}>
+            add new player
+          </button>
+        </Show>
         <br />
         <button type={"button"} onClick={() => startGameClicked()}>
           START
