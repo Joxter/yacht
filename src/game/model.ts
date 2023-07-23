@@ -2,25 +2,27 @@ import { combine, createEffect, createEvent, createStore, sample } from "effecto
 import {
   CategoryName,
   newPlayer,
-  GameStatuses,
   MaxPlayerCount,
   Dices,
   createGame,
-  dicesToSpinning,
-  throwDices,
-  Stage,
+  throwDicesEnd,
   startGame,
+  canSpin,
   canThrow,
+  throwDicesStart,
 } from "./game";
 
 let game = createGame();
 
-export let $game = createStore(startGame(game.stage));
+export let $game = createStore({
+  stage: startGame(game.stage),
+  dices: game.dices,
+});
 export let $players = createStore(game.players);
 
 export let $playerNameInput = createStore("");
 
-export let $dices = createStore(game.dices);
+export let $dices = $game.map((it) => it.dices);
 
 export let $setDices = $dices.map((dices) => {
   let res = dices.filter((d) => d.state === "table" || d.state === "kept");
@@ -29,40 +31,44 @@ export let $setDices = $dices.map((dices) => {
 });
 
 export let $currentPlayer = $game.map((s) => {
-  if ("player" in s) {
-    return s.player;
+  if ("player" in s.stage) {
+    return s.stage.player;
   }
   return 0;
 });
 
-export let $canThrow = $game.map((g) => canThrow(g));
+export let $canSpin = $game.map((g) => canSpin(g.stage));
+export let $canThrow = $game.map((g) => canThrow(g.stage));
 
 let addPlayerClicked = createEvent();
 let removePlayerClicked = createEvent<number>();
 let playerNameChanged = createEvent<{ n: number; name: string }>();
 let startGameClicked = createEvent();
 
+export let spinDicesClicked = createEvent();
 export let throwDicesClicked = createEvent();
-export let toBoxDicesClicked = createEvent();
 export let keepDiceClicked = createEvent<{ diceNumber: number }>();
 export let discardDiceClicked = createEvent<{ diceNumber: number }>();
 export let commitScoreClicked = createEvent<{ name: CategoryName; score: number }>();
 
-let throwDicesFx = createEffect(
-  async (params: { dices: Dices; game: Stage }): Promise<{ dices: Dices; game: Stage }> => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    return throwDices(params.game, params.dices);
+sample({
+  source: $game,
+  clock: spinDicesClicked,
+  filter: $canSpin,
+  fn: (game) => {
+    return throwDicesStart(game.stage, game.dices);
   },
-);
+  target: $game,
+});
 
 sample({
-  source: [$dices, $game] as const,
+  source: $game,
   clock: throwDicesClicked,
-  fn: ([dices, game]) => {
-    return { dices, game };
+  filter: $canThrow,
+  fn: (game) => {
+    return throwDicesEnd(game.stage, game.dices);
   },
-  target: throwDicesFx,
+  target: $game,
 });
 
 $players
@@ -90,10 +96,10 @@ sample({
   source: [$players, $game] as const,
   clock: commitScoreClicked,
   fn: ([players, game], { score, name }) => {
-    if ("player" in game) {
+    if ("player" in game.stage) {
       let newPlayers = [...players];
-      newPlayers[game.player].scores = {
-        ...newPlayers[game.player].scores,
+      newPlayers[game.stage.player].scores = {
+        ...newPlayers[game.stage.player].scores,
         [name]: score,
       };
       return newPlayers;
@@ -104,31 +110,23 @@ sample({
 });
 
 $game
-  .on(startGameClicked, () => {
-    return { status: GameStatuses.PlayerStart, player: 0, step: 1 };
-  })
-  .on(throwDicesFx.doneData, (_, { game }) => game);
-
-$dices
-  .on(throwDicesClicked, (dices) => dicesToSpinning(dices))
-  .on(throwDicesFx.doneData, (_, { dices }) => dices)
-  .on(keepDiceClicked, (dices, { diceNumber }) => {
-    let res = dices.map((d) => {
+  .on(keepDiceClicked, (game, { diceNumber }) => {
+    let res = game.dices.map((d) => {
       if (d.pos === diceNumber) {
         return { ...d, state: "kept" };
       }
       return d;
     }) as Dices;
-    return res;
+    return { ...game, dices: res };
   })
-  .on(discardDiceClicked, (dices, { diceNumber }) => {
-    let res = dices.map((d) => {
+  .on(discardDiceClicked, (game, { diceNumber }) => {
+    let res = game.dices.map((d) => {
       if (d.pos === diceNumber) {
         return { ...d, state: "table" };
       }
       return d;
     }) as Dices;
-    return res;
+    return { ...game, dices: res };
   });
 
 addPlayerClicked();

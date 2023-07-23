@@ -9,10 +9,7 @@ export type Dices = [Dice, Dice, Dice, Dice, Dice];
 
 export const GameStatuses = {
   Init: "Init",
-  PlayerStart: "PlayerStart", // before roll
-  PlayerThrew: "PlayerThrew", // rolling
-  PlayerThinking: "PlayerThinking", // mixing dices
-  ScoreCommitted: "ScoreCommitted", // score committed
+  PlayerMove: "PlayerMove",
   Finish: "Finish",
 } as const;
 
@@ -20,10 +17,7 @@ export const MaxPlayerCount = 6;
 
 export type Stage =
   | { status: typeof GameStatuses.Init }
-  | { status: typeof GameStatuses.PlayerStart; player: number; step: number }
-  | { status: typeof GameStatuses.PlayerThrew; player: number; step: number }
-  | { status: typeof GameStatuses.PlayerThinking; player: number; step: number }
-  | { status: typeof GameStatuses.ScoreCommitted; player: number }
+  | { status: typeof GameStatuses.PlayerMove; player: number; step: number; spinning: boolean }
   | { status: typeof GameStatuses.Finish; player: number };
 
 export type Scores = {
@@ -55,7 +49,6 @@ export type Player = {
 export type Category = {
   name: CategoryName;
   icon: string;
-  // TODO dices -> count of everything
   isMatch: (dices: DiceSum, scores: Scores) => number | false;
 };
 
@@ -236,50 +229,72 @@ export function createGame(): { stage: Stage; players: Player[]; dices: Dices } 
   return { stage, players, dices };
 }
 
-export function dicesToSpinning(dices: Dices): Dices {
-  let res = dices.map((d) => {
+export function throwDicesStart(game: Stage, dices: Dices): { stage: Stage; dices: Dices } {
+  let maybeGame = trySpin(game);
+  if (!maybeGame) {
+    return { stage: game, dices };
+  }
+
+  let newDices = dices.map((d) => {
     if (d.state !== "kept") {
       return { ...d, state: "spinning" };
     }
     return d;
   }) as Dices;
 
-  return res;
+  return { stage: maybeGame, dices: newDices };
 }
 
-export function throwDices(game: Stage, dices: Dices): { game: Stage; dices: Dices } {
-  if ("step" in game && game.step <= 3) {
-    let diceVals = dices
-      .filter((d) => d.state === "spinning")
-      .map(() => {
-        return (Math.floor(Math.random() * 6) + 1) as DiceVal;
-      })
-      .sort((a, b) => b - a);
-
-    let newDices = dices.map((d) => {
-      if (d.state === "spinning") {
-        return {
-          pos: d.pos,
-          val: diceVals.pop(),
-          state: "table",
-        };
-      }
-      return d;
-    }) as Dices;
-
-    let newGame = { ...game };
-    newGame.step++;
-
-    return { game: newGame, dices: newDices };
+export function throwDicesEnd(stage: Stage, dices: Dices): { stage: Stage; dices: Dices } {
+  let maybeGame = tryThrow(stage);
+  if (!maybeGame) {
+    return { stage, dices };
   }
-  return { game, dices };
+
+  let diceVals = dices
+    .filter((d) => d.state === "spinning")
+    .map(() => {
+      return (Math.floor(Math.random() * 6) + 1) as DiceVal;
+    })
+    .sort((a, b) => b - a);
+
+  let newDices = dices.map((d) => {
+    if (d.state === "spinning") {
+      return {
+        pos: d.pos,
+        val: diceVals.pop(),
+        state: "table",
+      };
+    }
+    return d;
+  }) as Dices;
+
+  return { dices: newDices, stage: maybeGame };
 }
 
 export function startGame(game: Stage): Stage {
   // todo add required checks
-  return { status: GameStatuses.PlayerStart, player: 0, step: 1 };
+  return { status: GameStatuses.PlayerMove, player: 0, step: 1, spinning: false };
+}
+
+export function canSpin(game: Stage): boolean {
+  return game.status === GameStatuses.PlayerMove && !game.spinning && game.step <= 3;
+}
+
+export function trySpin(game: Stage): false | Stage {
+  if (game.status === GameStatuses.PlayerMove && game.step <= 3) {
+    return { ...game, spinning: true, step: game.step + 1 };
+  }
+  return false;
+}
+
+export function tryThrow(game: Stage): false | Stage {
+  if (game.status === GameStatuses.PlayerMove && game.spinning) {
+    return { ...game, spinning: false };
+  }
+  return false;
 }
 
 export function canThrow(game: Stage): boolean {
-  return "step" in game && game.step <= 3;
+  return game.status === GameStatuses.PlayerMove && game.spinning;
 }
