@@ -7,7 +7,11 @@ export type Dice = {
 };
 export type Dices = [Dice, Dice, Dice, Dice, Dice];
 
-// todo Store FULL state (dices, players, stage) in one single variable
+export type Game = {
+  stage: Stage;
+  dices: Dices;
+  players: Player[];
+};
 
 export const GameStatuses = {
   Init: "Init",
@@ -44,7 +48,6 @@ export type CategoryName = keyof Scores;
 
 export type Player = {
   name: string;
-  // n: number;
   scores: Scores;
 };
 
@@ -148,8 +151,8 @@ export const categoriesLow: Category[] = [
   },
 ];
 
-export function newPlayer(): Player {
-  return { name: "", scores: newScores() };
+export function newPlayer(name: string): Player {
+  return { name, scores: newScores() };
 }
 
 export function newScores(): Scores {
@@ -244,7 +247,7 @@ export function createDices(): Dices {
   ] as Dices;
 }
 
-export function createGame(): { stage: Stage; players: Player[]; dices: Dices } {
+export function createGame(): Game {
   let stage: Stage = {
     status: GameStatuses.Init,
   };
@@ -255,36 +258,36 @@ export function createGame(): { stage: Stage; players: Player[]; dices: Dices } 
   return { stage, players, dices };
 }
 
-export function throwDicesStart(game: Stage, dices: Dices): { stage: Stage; dices: Dices } {
-  let maybeGame = trySpin(game);
-  if (!maybeGame) {
-    return { stage: game, dices };
+export function throwDicesStart(game: Game): null | { stage: Stage; dices: Dices } {
+  let maybeStage = trySpin(game.stage);
+  if (!maybeStage) {
+    return null;
   }
 
-  let newDices = dices.map((d) => {
+  let newDices = game.dices.map((d) => {
     if (d.state !== "kept") {
       return { ...d, state: "spinning" };
     }
     return d;
   }) as Dices;
 
-  return { stage: maybeGame, dices: newDices };
+  return { stage: maybeStage, dices: newDices };
 }
 
-export function throwDicesEnd(stage: Stage, dices: Dices): { stage: Stage; dices: Dices } {
-  let maybeGame = tryThrow(stage);
+export function throwDicesEnd(game: Game): { stage: Stage; dices: Dices } | null {
+  let maybeGame = tryThrow(game.stage);
   if (!maybeGame) {
-    return { stage, dices };
+    return null;
   }
 
-  let diceVals = dices
+  let diceVals = game.dices
     .filter((d) => d.state === "spinning")
     .map(() => {
       return (Math.floor(Math.random() * 6) + 1) as DiceVal;
     })
     .sort((a, b) => b - a);
 
-  let newDices = dices.map((d) => {
+  let newDices = game.dices.map((d) => {
     if (d.state === "spinning") {
       return {
         pos: d.pos,
@@ -298,13 +301,25 @@ export function throwDicesEnd(stage: Stage, dices: Dices): { stage: Stage; dices
   return { dices: newDices, stage: maybeGame };
 }
 
-export function startGame(stage: Stage, players: Player[]): Stage {
-  if (stage.status === GameStatuses.Init) {
-    if (players.every((p) => p.name.trim() !== "")) {
-      return { status: GameStatuses.PlayerMove, player: 0, step: 0, spinning: false };
+export function startGame(game: Game): Game | null {
+  if (game.stage.status === GameStatuses.Init) {
+    if (game.players.every((p) => p.name.trim() !== "")) {
+      return {
+        stage: {
+          status: GameStatuses.PlayerMove,
+          player: 0,
+          step: 0,
+          spinning: false,
+        },
+        players: game.players.map((p) => {
+          return { name: p.name, scores: newScores() };
+        }),
+        dices: createDices(),
+      };
     }
   }
-  return stage;
+
+  return null;
 }
 
 export function canSpin(game: Stage): boolean {
@@ -330,27 +345,26 @@ export function canThrow(game: Stage): boolean {
 }
 
 export function commitScores(
-  stage: Stage,
-  players: Player[],
+  game: Game,
   payload: { score: number; name: CategoryName },
-): { stage: Stage; players: Player[] } {
-  if (stage.status === GameStatuses.PlayerMove && payload.name !== "Extra") {
-    let newPlayers = [...players];
-    newPlayers[stage.player].scores = {
-      ...newPlayers[stage.player].scores,
+): { stage: Stage; players: Player[] } | null {
+  if (game.stage.status === GameStatuses.PlayerMove && payload.name !== "Extra") {
+    let newPlayers = [...game.players];
+    newPlayers[game.stage.player].scores = {
+      ...newPlayers[game.stage.player].scores,
       [payload.name]: payload.score,
     };
 
-    if (isTopCategory(payload.name) && ifAllTopCommitted(newPlayers[stage.player].scores)) {
-      let extraScores = extraCategory.isMatch([] as any, newPlayers[stage.player].scores) || 0;
+    if (isTopCategory(payload.name) && ifAllTopCommitted(newPlayers[game.stage.player].scores)) {
+      let extraScores = extraCategory.isMatch([] as any, newPlayers[game.stage.player].scores) || 0;
 
-      newPlayers[stage.player].scores = {
-        ...newPlayers[stage.player].scores,
+      newPlayers[game.stage.player].scores = {
+        ...newPlayers[game.stage.player].scores,
         Extra: extraScores,
       };
     }
 
-    let nextPlayerId = (stage.player + 1) % players.length;
+    let nextPlayerId = (game.stage.player + 1) % game.players.length;
 
     if (isAllCommitted(newPlayers[nextPlayerId])) {
       return {
@@ -365,13 +379,13 @@ export function commitScores(
     return {
       players: newPlayers,
       stage: {
-        ...stage,
+        ...game.stage,
         player: nextPlayerId,
         step: 0,
       },
     };
   }
-  return { players, stage };
+  return null;
 }
 
 function isAllCommitted(player: Player): boolean {

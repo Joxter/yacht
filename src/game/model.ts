@@ -16,13 +16,10 @@ import {
 
 let game = createGame();
 
-export let $game = createStore({
-  stage: game.stage,
-  dices: game.dices,
-});
-export let $players = createStore(game.players);
+export let $game = createStore(game);
 
 export let $dices = $game.map((it) => it.dices);
+export let $players = $game.map((it) => it.players);
 
 export let $setDices = $dices.map((dices) => {
   let res = dices.filter((d) => d.state === "table" || d.state === "kept");
@@ -56,7 +53,8 @@ sample({
   clock: spinDicesClicked,
   filter: $canSpin,
   fn: (game) => {
-    return throwDicesStart(game.stage, game.dices);
+    let res = throwDicesStart(game);
+    return res ? { ...game, ...res } : game;
   },
   target: $game,
 });
@@ -66,56 +64,48 @@ sample({
   clock: throwDicesClicked,
   filter: $canThrow,
   fn: (game) => {
-    return throwDicesEnd(game.stage, game.dices);
+    let res = throwDicesEnd(game);
+    return res ? { ...game, ...res } : game;
   },
   target: $game,
 });
 
-$players
-  .on(addPlayerClicked, (players) => {
-    if (players.length < MaxPlayerCount) {
-      return [...players, newPlayer()];
+$game
+  .on(addPlayerClicked, (game) => {
+    if (game.players.length < MaxPlayerCount) {
+      return { ...game, players: [...game.players, newPlayer("")] };
     }
-    return players;
+    return game;
   })
-  .on(removePlayerClicked, (players, n) => {
-    if (players.length < 2) return players;
-    let newPlayers = [...players];
+  .on(removePlayerClicked, (game, n) => {
+    if (game.players.length < 2) return game;
+    let newPlayers = [...game.players];
     newPlayers.splice(n, 1);
-    return newPlayers;
+    return { ...game, players: newPlayers };
   })
-  .on(playerNameChanged, (players, { n, name }) => {
-    let newPlayers = [...players];
+  .on(playerNameChanged, (game, { n, name }) => {
+    let newPlayers = [...game.players];
     newPlayers[n].name = name;
-    return newPlayers;
+    return { ...game, players: newPlayers };
   });
 
 sample({
-  source: [$players, $game] as const,
+  source: $game,
   clock: commitScoreClicked,
-  fn: ([players, game], payload) => {
-    return commitScores(game.stage, players, payload).players;
-  },
-  target: $players,
-});
-
-sample({
-  source: [$players, $game] as const,
-  clock: commitScoreClicked,
-  fn: ([players, game], payload) => {
-    return {
-      stage: commitScores(game.stage, players, payload).stage,
-      dices: createDices(),
-    };
+  fn: (game, payload) => {
+    let res = commitScores(game, payload);
+    return res ? { ...game, ...res } : game;
   },
   target: $game,
 });
 
 sample({
-  source: [$players, $game] as const,
+  source: $game,
   clock: startGameClicked,
-  fn: ([players, game]) => {
-    return { ...game, stage: startGame(game.stage, players) };
+  fn: (game) => {
+    let res = startGame(game);
+    // console.log(res);
+    return res ? { ...game, ...res } : game;
   },
   target: $game,
 });
@@ -139,8 +129,6 @@ $game
     }) as Dices;
     return { ...game, dices: res };
   });
-
-$game.reset(startGameClicked);
 
 addPlayerClicked();
 addPlayerClicked();
