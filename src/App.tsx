@@ -3,30 +3,11 @@ import { Show } from "solid-js";
 import css from "./App.module.css";
 import { PlayerScores } from "./components/PlayerScores";
 import { useUnit } from "effector-solid";
-import {
-  $setDices,
-  $players,
-  $dices,
-  spinDicesClicked,
-  $currentPlayer,
-  $canSpin,
-  throwDicesClicked,
-  $canThrow,
-  $game,
-} from "./game/model";
+import { $dices, spinDicesClicked, $canSpin, throwDicesClicked, $canThrow, $game } from "./game/model";
 import { FiveDices } from "./components/FiveDices";
-import { canSpin, GameStatuses } from "./game/game";
 
 const App: Component = () => {
-  let [allDices, newDices, players, currentPlayer, canSpin, canThrow, game] = useUnit([
-    $setDices,
-    $dices,
-    $players,
-    $currentPlayer,
-    $canSpin,
-    $canThrow,
-    $game,
-  ]);
+  let [dices, canSpin, canThrow, game] = useUnit([$dices, $canSpin, $canThrow, $game]);
 
   return (
     <div class={css.root}>
@@ -34,16 +15,9 @@ const App: Component = () => {
         <h1>Yacht</h1>
 
         <div style={{ display: "grid", gap: "8px", "grid-template-columns": "auto 1fr" }}>
+          <PlayerScores />
           <div>
-            <PlayerScores
-              dices={allDices()}
-              currentPlayer={currentPlayer()}
-              players={players()}
-              editable={game().stage.status === GameStatuses.Init}
-            />
-          </div>
-          <div>
-            <FiveDices dices={newDices()} />
+            <FiveDices dices={dices()} />
             <div>
               <Show when={canSpin()}>
                 <button type={"button"} onClick={() => spinDicesClicked()}>

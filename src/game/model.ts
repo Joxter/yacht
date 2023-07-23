@@ -11,7 +11,8 @@ import {
   canThrow,
   throwDicesStart,
   commitScores,
-  createDices,
+  GameStatuses,
+  countOfEverything,
 } from "./game";
 
 let game = createGame();
@@ -20,11 +21,12 @@ export let $game = createStore(game);
 
 export let $dices = $game.map((it) => it.dices);
 export let $players = $game.map((it) => it.players);
+export let $editable = $game.map((game) => game.stage.status === GameStatuses.Init);
 
-export let $setDices = $dices.map((dices) => {
+export let $countOfEverything = $dices.map((dices) => {
   let res = dices.filter((d) => d.state === "table" || d.state === "kept");
 
-  return res.length === 5 ? (res as Dices) : null;
+  return res.length === 5 ? countOfEverything(res as Dices) : null;
 });
 
 export let $currentPlayer = $game.map((s) => {

@@ -344,10 +344,7 @@ export function canThrow(game: Stage): boolean {
   return game.status === GameStatuses.PlayerMove && game.spinning;
 }
 
-export function commitScores(
-  game: Game,
-  payload: { score: number; name: CategoryName },
-): { stage: Stage; players: Player[] } | null {
+export function commitScores(game: Game, payload: { score: number; name: CategoryName }): Game | null {
   if (game.stage.status === GameStatuses.PlayerMove && payload.name !== "Extra") {
     let newPlayers = [...game.players];
     newPlayers[game.stage.player].scores = {
@@ -369,6 +366,7 @@ export function commitScores(
     if (isAllCommitted(newPlayers[nextPlayerId])) {
       return {
         players: newPlayers,
+        dices: createDices(),
         stage: {
           status: GameStatuses.Finish,
           winners: findWinners(newPlayers),
@@ -378,6 +376,7 @@ export function commitScores(
 
     return {
       players: newPlayers,
+      dices: createDices(),
       stage: {
         ...game.stage,
         player: nextPlayerId,

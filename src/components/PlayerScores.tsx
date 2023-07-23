@@ -1,58 +1,51 @@
 import type { Component } from "solid-js";
-import {
-  categoriesLow,
-  categoriesTop,
-  Dices,
-  Player,
-  Category,
-  countOfEverything,
-  extraCategory,
-  trySpin,
-} from "../game/game";
+import { categoriesLow, categoriesTop, Category, extraCategory } from "../game/game";
 import css from "./PlayerScores.module.css";
 import {
+  $countOfEverything,
+  $currentPlayer,
+  $editable,
+  $players,
   addPlayerClicked,
   commitScoreClicked,
   playerNameChanged,
   removePlayerClicked,
   startGameClicked,
 } from "../game/model";
-import { Show } from "solid-js";
+import { For, Show } from "solid-js";
+import { useUnit } from "effector-solid";
 
-type Props = {
-  players: Player[];
-  currentPlayer: number;
-  dices: Dices | null;
-  editable: boolean;
-};
+export const PlayerScores: Component = () => {
+  let [players, editable] = useUnit([$players, $editable]);
 
-export const PlayerScores: Component<Props> = (props) => {
   function cols() {
-    return `150px${" 50px".repeat(props.players.length)}`;
+    return `150px${" 50px".repeat(players().length)}`;
   }
 
   return (
     <div class={css.root}>
       <div class={css.root}>
-        {props.players.map((p, i) => {
-          return (
-            <div>
-              <input
-                type="text"
-                value={p.name}
-                onChange={(ev) => {
-                  playerNameChanged({ n: i, name: ev.target.value });
-                }}
-              />
-              <Show when={props.editable}>
-                <button type={"button"} onClick={() => removePlayerClicked(i)}>
-                  delete
-                </button>
-              </Show>
-            </div>
-          );
-        })}
-        <Show when={props.editable}>
+        <For each={players()}>
+          {(p, i) => {
+            return (
+              <div>
+                <input
+                  type="text"
+                  value={p.name}
+                  onChange={(ev) => {
+                    playerNameChanged({ n: i(), name: ev.target.value });
+                  }}
+                />
+                <Show when={editable()}>
+                  <button type={"button"} onClick={() => removePlayerClicked(i())}>
+                    delete
+                  </button>
+                </Show>
+              </div>
+            );
+          }}
+        </For>
+        <Show when={editable()}>
           <button type={"button"} onClick={() => addPlayerClicked()}>
             add new player
           </button>
@@ -63,59 +56,48 @@ export const PlayerScores: Component<Props> = (props) => {
         </button>
       </div>
       <div classList={{ [css.scoreRow]: true }} style={{ "grid-template-columns": cols() }}>
-        <p> Scores:</p>
-        {props.players.map((p, i) => (
-          <p title={p.name}>{i + 1}</p>
-        ))}
+        <p>Scores:</p>
+        <For each={players()}>
+          {(p, i) => {
+            return <p title={p.name}>{i() + 1}</p>;
+          }}
+        </For>
       </div>
       <div>
         {categoriesTop.map((category) => {
-          return (
-            <ScoreRow
-              dices={props.dices}
-              players={props.players}
-              currentPlayer={props.currentPlayer}
-              category={category}
-            />
-          );
+          return <ScoreRow category={category} />;
         })}
       </div>
-      <ExtraScoreRow players={props.players} currentPlayer={props.currentPlayer} category={extraCategory} />
+      <ExtraScoreRow category={extraCategory} />
       <p>---</p>
       <div>
-        {categoriesLow.map((category) => {
-          return (
-            <ScoreRow
-              dices={props.dices}
-              players={props.players}
-              currentPlayer={props.currentPlayer}
-              category={category}
-            />
-          );
-        })}
+        <For each={categoriesLow}>
+          {(category) => {
+            return <ScoreRow category={category} />;
+          }}
+        </For>
       </div>
     </div>
   );
 };
 
 type ScoreRowProps = {
-  players: Player[];
-  dices: Dices | null;
-  currentPlayer: number;
   category: Category;
 };
 
 export const ScoreRow: Component<ScoreRowProps> = (props) => {
+  let [players, currentPlayer, countOfEverything] = useUnit([$players, $currentPlayer, $countOfEverything]);
+
   const { isMatch, name } = props.category;
 
   function cols() {
-    return `150px${" 50px".repeat(props.players.length)}`;
+    return `150px${" 50px".repeat(players().length)}`;
   }
 
   return (
     <div classList={{ [css.scoreRow]: true }} style={{ "grid-template-columns": cols() }}>
       <p>{name}</p>
-      {props.players.map((p, i) => {
+      {players().map((p, i) => {
         let isCaptured = p.scores[name] !== null;
 
         if (isCaptured) {
@@ -126,11 +108,11 @@ export const ScoreRow: Component<ScoreRowProps> = (props) => {
           );
         }
 
-        let isCurrentPlayer = props.currentPlayer === i;
+        let isCurrentPlayer = currentPlayer() === i;
+        let count = countOfEverything();
 
-        if (isCurrentPlayer && props.dices) {
-          // todo remove countOfEverything(props.dices) from view
-          const match = isMatch(countOfEverything(props.dices), p.scores) || 0;
+        if (isCurrentPlayer && count) {
+          const match = isMatch(count, p.scores) || 0;
 
           return (
             <button
@@ -157,26 +139,28 @@ export const ScoreRow: Component<ScoreRowProps> = (props) => {
 };
 
 export const ExtraScoreRow: Component<{
-  players: Player[];
-  currentPlayer: number;
   category: Category;
 }> = (props) => {
   const { name } = props.category;
 
+  let [players] = useUnit([$players]);
+
   function cols() {
-    return `150px${" 50px".repeat(props.players.length)}`;
+    return `150px${" 50px".repeat(players().length)}`;
   }
 
   return (
     <div classList={{ [css.scoreRow]: true }} style={{ "grid-template-columns": cols() }}>
       <p>{name}</p>
-      {props.players.map((p, i) => {
-        return (
-          <button type={"button"} disabled classList={{ [css.scoreCell]: true, [css.done]: true }}>
-            {p.scores[name]}
-          </button>
-        );
-      })}
+      <For each={players()}>
+        {(p, i) => {
+          return (
+            <button type={"button"} disabled classList={{ [css.scoreCell]: true, [css.done]: true }}>
+              {p.scores[name]}
+            </button>
+          );
+        }}
+      </For>
     </div>
   );
 };
