@@ -16,7 +16,7 @@ import { For, Show } from "solid-js";
 import { useUnit } from "effector-solid";
 
 export const PlayerScores: Component = () => {
-  let [players, editable] = useUnit([$players, $editable]);
+  let [players] = useUnit([$players]);
 
   function cols() {
     return `150px${" 50px".repeat(players().length)}`;
@@ -24,37 +24,6 @@ export const PlayerScores: Component = () => {
 
   return (
     <div class={css.root}>
-      <div class={css.root}>
-        <For each={players()}>
-          {(p, i) => {
-            return (
-              <div>
-                <input
-                  type="text"
-                  value={p.name}
-                  onChange={(ev) => {
-                    playerNameChanged({ n: i(), name: ev.target.value });
-                  }}
-                />
-                <Show when={editable()}>
-                  <button type={"button"} onClick={() => removePlayerClicked(i())}>
-                    delete
-                  </button>
-                </Show>
-              </div>
-            );
-          }}
-        </For>
-        <Show when={editable()}>
-          <button type={"button"} onClick={() => addPlayerClicked()}>
-            add new player
-          </button>
-        </Show>
-        <br />
-        <button type={"button"} onClick={() => startGameClicked()}>
-          START
-        </button>
-      </div>
       <div classList={{ [css.scoreRow]: true }} style={{ "grid-template-columns": cols() }}>
         <p>Scores:</p>
         <For each={players()}>

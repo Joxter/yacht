@@ -301,22 +301,20 @@ export function throwDicesEnd(game: Game): { stage: Stage; dices: Dices } | null
   return { dices: newDices, stage: maybeGame };
 }
 
-export function startGame(game: Game): Game | null {
-  if (game.stage.status === GameStatuses.Init) {
-    if (game.players.every((p) => p.name.trim() !== "")) {
-      return {
-        stage: {
-          status: GameStatuses.PlayerMove,
-          player: 0,
-          step: 0,
-          spinning: false,
-        },
-        players: game.players.map((p) => {
-          return { name: p.name, scores: newScores() };
-        }),
-        dices: createDices(),
-      };
-    }
+export function startNewGameSamePlayers(game: Game): Game | null {
+  if (game.players.every((p) => p.name.trim() !== "")) {
+    return {
+      stage: {
+        status: GameStatuses.PlayerMove,
+        player: 0,
+        step: 0,
+        spinning: false,
+      },
+      players: game.players.map((p) => {
+        return { name: p.name, scores: newScores() };
+      }),
+      dices: createDices(),
+    };
   }
 
   return null;
@@ -342,6 +340,10 @@ export function tryThrow(game: Stage): false | Stage {
 
 export function canThrow(game: Stage): boolean {
   return game.status === GameStatuses.PlayerMove && game.spinning;
+}
+
+export function canStartNewGame(game: Game): boolean {
+  return game.players.length > 1 && game.players.every((p) => p.name.trim() !== "");
 }
 
 export function commitScores(game: Game, payload: { score: number; name: CategoryName }): Game | null {

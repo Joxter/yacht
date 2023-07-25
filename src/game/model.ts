@@ -6,13 +6,14 @@ import {
   Dices,
   createGame,
   throwDicesEnd,
-  startGame,
+  startNewGameSamePlayers,
   canSpin,
   canThrow,
   throwDicesStart,
   commitScores,
   GameStatuses,
   countOfEverything,
+  canStartNewGame,
 } from "./game";
 
 let game = createGame();
@@ -38,6 +39,7 @@ export let $currentPlayer = $game.map((s) => {
 
 export let $canSpin = $game.map((g) => canSpin(g.stage));
 export let $canThrow = $game.map((g) => canThrow(g.stage));
+export let $canStartNewGame = $game.map((g) => canStartNewGame(g));
 
 export let addPlayerClicked = createEvent();
 export let removePlayerClicked = createEvent<number>();
@@ -105,8 +107,7 @@ sample({
   source: $game,
   clock: startGameClicked,
   fn: (game) => {
-    let res = startGame(game);
-    // console.log(res);
+    let res = startNewGameSamePlayers(game);
     return res ? { ...game, ...res } : game;
   },
   target: $game,
