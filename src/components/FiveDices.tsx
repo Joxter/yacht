@@ -10,7 +10,7 @@ import {
   throwDicesClicked,
 } from "../game/model";
 import { Dice } from "../game/game";
-import cup from "./cup.png";
+import cup from "./cup.webp";
 import { useUnit } from "effector-solid";
 
 export const FiveDices: Component = () => {
