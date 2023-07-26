@@ -2,6 +2,7 @@ export type DiceVal = 1 | 2 | 3 | 4 | 5 | 6;
 export type DiceSum = [number, number, number, number, number, number];
 export type Dice = {
   val: DiceVal;
+  id: number;
   pos: number;
   state: "kept" | "table" | "cup" | "spinning";
 };
@@ -239,11 +240,11 @@ function isTopCategory(name: CategoryName): boolean {
 
 export function createDices(): Dices {
   return [
-    { val: 1, pos: 0, state: "cup" },
-    { val: 1, pos: 1, state: "cup" },
-    { val: 1, pos: 2, state: "cup" },
-    { val: 1, pos: 3, state: "cup" },
-    { val: 1, pos: 4, state: "cup" },
+    { val: 1, id: 0, pos: 0, state: "cup" },
+    { val: 1, id: 1, pos: 1, state: "cup" },
+    { val: 1, id: 2, pos: 2, state: "cup" },
+    { val: 1, id: 3, pos: 3, state: "cup" },
+    { val: 1, id: 4, pos: 4, state: "cup" },
   ] as Dices;
 }
 
@@ -287,11 +288,11 @@ export function throwDicesEnd(game: Game): { stage: Stage; dices: Dices } | null
     })
     .sort((a, b) => b - a);
 
-  let newDices = game.dices.map((d) => {
+  let newDices = game.dices.map((d): Dice => {
     if (d.state === "spinning") {
       return {
-        pos: d.pos,
-        val: diceVals.pop(),
+        ...d,
+        val: diceVals.pop()!,
         state: "table",
       };
     }
@@ -320,20 +321,28 @@ export function startNewGameSamePlayers(game: Game): Game | null {
   return null;
 }
 
+export function isSpinning(game: Stage): boolean {
+  return game.status === GameStatuses.PlayerMove && game.spinning;
+}
+
 export function canSpin(game: Stage): boolean {
   return game.status === GameStatuses.PlayerMove && !game.spinning && game.step < 3;
 }
 
+export function noMoreShakes(game: Stage): boolean {
+  return game.status === GameStatuses.PlayerMove && game.step === 3;
+}
+
 export function trySpin(game: Stage): false | Stage {
   if (game.status === GameStatuses.PlayerMove && game.step < 3) {
-    return { ...game, spinning: true, step: game.step + 1 };
+    return { ...game, spinning: true };
   }
   return false;
 }
 
 export function tryThrow(game: Stage): false | Stage {
   if (game.status === GameStatuses.PlayerMove && game.spinning) {
-    return { ...game, spinning: false };
+    return { ...game, spinning: false, step: game.step + 1 };
   }
   return false;
 }

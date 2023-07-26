@@ -3,30 +3,13 @@ import { Show } from "solid-js";
 import css from "./App.module.css";
 import { PlayerScores } from "./components/PlayerScores";
 import { useUnit } from "effector-solid";
-import {
-  $dices,
-  spinDicesClicked,
-  $canSpin,
-  throwDicesClicked,
-  $canThrow,
-  $game,
-  $editable,
-  startGameClicked,
-  $canStartNewGame,
-} from "./game/model";
+import { $game, $editable, startGameClicked, $canStartNewGame } from "./game/model";
 import { FiveDices } from "./components/FiveDices";
 import { PlayersForm } from "./components/PlayersForm";
 import { GameStatuses } from "./game/game";
 
 const App: Component = () => {
-  let [dices, canSpin, canThrow, game, editable, canStartNewGame] = useUnit([
-    $dices,
-    $canSpin,
-    $canThrow,
-    $game,
-    $editable,
-    $canStartNewGame,
-  ]);
+  let [game, editable, canStartNewGame] = useUnit([$game, $editable, $canStartNewGame]);
 
   return (
     <div class={css.root}>
@@ -45,19 +28,7 @@ const App: Component = () => {
               </button>
             </div>
             <div>
-              <FiveDices dices={dices()} />
-              <div>
-                <Show when={canSpin()}>
-                  <button type={"button"} onClick={() => spinDicesClicked()}>
-                    spin dices
-                  </button>
-                </Show>
-                <Show when={canThrow()}>
-                  <button disabled={!canThrow()} type={"button"} onClick={() => throwDicesClicked()}>
-                    throw dices
-                  </button>
-                </Show>
-              </div>
+              <FiveDices />
               <p style={{}}>stage: {JSON.stringify(game().stage)}</p>
             </div>
           </Show>

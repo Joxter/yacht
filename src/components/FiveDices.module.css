@@ -1,7 +1,17 @@
 .root {
   position: relative;
-  width: calc(50px * 5 + 8px * 4);
-  height: calc(50px * 3 + 8px * 2);
+  width: calc(50px * 5 + 8px * 4 + 16px);
+  height: 330px;
+  display: flex;
+}
+
+.keep {
+  position: absolute;
+  height: 62px;
+  width: 100%;
+  border-radius: 12px;
+  border: 2px solid #604d1c;
+  background-color: #f6f0e2;
 }
 
 .dice {
@@ -19,7 +29,7 @@
   border: none;
   font-size: 24px;
   font-weight: bold;
-  transition: transform 0.1s ease-in-out;
+  transition: transform 0.2s ease-in-out;
 }
 
 .spinner {
@@ -31,6 +41,26 @@
   animation: spin 1s linear infinite;
 }
 
+.cupBtn {
+  all: unset;
+  position: relative;
+  height: 200px;
+  cursor: pointer;
+  margin: auto auto 0;
+  transition: filter 0.1s linear;
+}
+
+.cupBtn.shaking {
+  animation: shake 0.15s linear infinite;
+}
+.cupBtn.noShake {
+  cursor: not-allowed;
+}
+
+.cup {
+  height: 200px;
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg) scale(1);
@@ -40,5 +70,20 @@
   }
   100% {
     transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes shake {
+  0% {
+    transform: rotate(0deg);
+  }
+  33% {
+    transform: rotate(2deg);
+  }
+  66% {
+    transform: rotate(-2deg);
+  }
+  100% {
+    transform: rotate(0deg);
   }
 }
