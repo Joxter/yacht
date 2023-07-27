@@ -49,6 +49,7 @@ export type CategoryName = keyof Scores;
 
 export type Player = {
   name: string;
+  icon: string;
   scores: Scores;
 };
 
@@ -152,8 +153,8 @@ export const categoriesLow: Category[] = [
   },
 ];
 
-export function newPlayer(name: string): Player {
-  return { name, scores: newScores() };
+export function newPlayer(name: string, icon: string): Player {
+  return { name, icon, scores: newScores() };
 }
 
 export function newScores(): Scores {
@@ -302,23 +303,16 @@ export function throwDicesEnd(game: Game): { stage: Stage; dices: Dices } | null
   return { dices: newDices, stage: maybeGame };
 }
 
-export function startNewGameSamePlayers(game: Game): Game | null {
-  if (game.players.every((p) => p.name.trim() !== "")) {
-    return {
-      stage: {
-        status: GameStatuses.PlayerMove,
-        player: 0,
-        step: 0,
-        spinning: false,
-      },
-      players: game.players.map((p) => {
-        return { name: p.name, scores: newScores() };
-      }),
-      dices: createDices(),
-    };
-  }
-
-  return null;
+export function startNewGameWithPlayers(players: { name: string; icon: string }[]): Game {
+  let game = createGame();
+  game.players = players.map((p) => newPlayer(p.name, p.icon));
+  game.stage = {
+    status: GameStatuses.PlayerMove,
+    player: 0,
+    step: 0,
+    spinning: false,
+  };
+  return game;
 }
 
 export function isSpinning(game: Stage): boolean {

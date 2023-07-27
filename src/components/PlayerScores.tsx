@@ -1,18 +1,8 @@
 import type { Component } from "solid-js";
 import { categoriesLow, categoriesTop, Category, extraCategory } from "../game/game";
 import css from "./PlayerScores.module.css";
-import {
-  $countOfEverything,
-  $currentPlayer,
-  $editable,
-  $players,
-  addPlayerClicked,
-  commitScoreClicked,
-  playerNameChanged,
-  removePlayerClicked,
-  startGameClicked,
-} from "../game/model";
-import { For, Show } from "solid-js";
+import { $countOfEverything, $currentPlayer, $players, commitScoreClicked } from "../game/model";
+import { For } from "solid-js";
 import { useUnit } from "effector-solid";
 
 export const PlayerScores: Component = () => {
@@ -27,8 +17,8 @@ export const PlayerScores: Component = () => {
       <div classList={{ [css.scoreRow]: true }} style={{ "grid-template-columns": cols() }}>
         <p>Scores:</p>
         <For each={players()}>
-          {(p, i) => {
-            return <p title={p.name}>{i() + 1}</p>;
+          {(p) => {
+            return <p title={p.name}>{p.icon}</p>;
           }}
         </For>
       </div>

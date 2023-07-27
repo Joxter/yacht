@@ -1,17 +1,10 @@
 import type { Component } from "solid-js";
-import {
-  $canStartNewGame,
-  $players,
-  addPlayerClicked,
-  playerNameChanged,
-  removePlayerClicked,
-  startGameClicked,
-} from "../game/model";
+import { playerForm } from "../game/model";
 import { For } from "solid-js";
 import { useUnit } from "effector-solid";
 
 export const PlayersForm: Component = () => {
-  let [players, canStartNewGame] = useUnit([$players, $canStartNewGame]);
+  let [players, formError] = useUnit([playerForm.$players, playerForm.$formError]);
 
   return (
     <div>
@@ -19,27 +12,41 @@ export const PlayersForm: Component = () => {
         {(p, i) => {
           return (
             <div>
+              <select
+                name=""
+                value={p.icon}
+                onChange={(ev) => {
+                  playerForm.iconChanged({ n: i(), icon: ev.target.value });
+                }}
+              >
+                <option value="">-</option>
+                {playerForm.ICONS.map((val) => {
+                  return <option value={val}>{val}</option>;
+                })}
+              </select>
               <input
                 type="text"
                 value={p.name}
                 onInput={(ev) => {
-                  playerNameChanged({ n: i(), name: ev.target.value });
+                  playerForm.nameChanged({ n: i(), name: ev.target.value });
                 }}
               />
-              <button type={"button"} onClick={() => removePlayerClicked(i())}>
+              <button type={"button"} onClick={() => playerForm.removePlayerClicked(i())}>
                 delete
               </button>
+              <p>error: {p.error}</p>
             </div>
           );
         }}
       </For>
-      <button type={"button"} onClick={() => addPlayerClicked()}>
+      <button type={"button"} onClick={() => playerForm.addPlayerClicked()}>
         add new player
       </button>
       <br />
-      <button type={"button"} onClick={() => startGameClicked()} disabled={!canStartNewGame()}>
+      <button type={"button"} onClick={() => playerForm.formSubmitted()}>
         START
       </button>
+      <p>{formError()}</p>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import type { Component } from "solid-js";
-import css from "./FiveDices.module.css";
+import css from "./DicesAndCup.module.css";
 import {
   $dices,
   $isSpinning,
@@ -13,7 +13,7 @@ import { Dice } from "../game/game";
 import cup from "./cup.webp";
 import { useUnit } from "effector-solid";
 
-export const FiveDices: Component = () => {
+export const DicesAndCup: Component = () => {
   let [dices, isSpinning, noMoreShakes] = useUnit([$dices, $isSpinning, $noMoreShakes]);
 
   return (

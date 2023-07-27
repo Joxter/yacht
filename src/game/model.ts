@@ -1,12 +1,10 @@
-import { combine, createEffect, createEvent, createStore, sample } from "effector";
+import { createEvent, createStore, sample } from "effector";
 import {
   CategoryName,
-  newPlayer,
-  MaxPlayerCount,
   Dices,
   createGame,
   throwDicesEnd,
-  startNewGameSamePlayers,
+  startNewGameWithPlayers,
   canSpin,
   canThrow,
   throwDicesStart,
@@ -18,10 +16,13 @@ import {
   isSpinning,
   noMoreShakes,
 } from "./game";
+import { createPlayersForm } from "./playersForm";
 
 let game = createGame();
 
 export let $game = createStore(game);
+
+export let playerForm = createPlayersForm();
 
 export let $dices = $game.map((it) => it.dices);
 export let $players = $game.map((it) => it.players);
@@ -79,25 +80,6 @@ sample({
   target: $game,
 });
 
-$game
-  .on(addPlayerClicked, (game) => {
-    if (game.players.length < MaxPlayerCount) {
-      return { ...game, players: [...game.players, newPlayer("")] };
-    }
-    return game;
-  })
-  .on(removePlayerClicked, (game, n) => {
-    if (game.players.length < 2) return game;
-    let newPlayers = [...game.players];
-    newPlayers.splice(n, 1);
-    return { ...game, players: newPlayers };
-  })
-  .on(playerNameChanged, (game, { n, name }) => {
-    let newPlayers = [...game.players];
-    newPlayers[n].name = name;
-    return { ...game, players: newPlayers };
-  });
-
 sample({
   source: $game,
   clock: commitScoreClicked,
@@ -109,11 +91,9 @@ sample({
 });
 
 sample({
-  source: $game,
-  clock: startGameClicked,
-  fn: (game) => {
-    let res = startNewGameSamePlayers(game);
-    return res ? { ...game, ...res } : game;
+  clock: playerForm.playersApplied,
+  fn: (players) => {
+    return startNewGameWithPlayers(players);
   },
   target: $game,
 });
@@ -137,13 +117,6 @@ $game
     }) as Dices;
     return { ...game, dices: res };
   });
-
-addPlayerClicked();
-addPlayerClicked();
-playerNameChanged({ n: 0, name: "Kolya" });
-playerNameChanged({ n: 1, name: "Olya" });
-
-// startGameClicked();
 
 function getDicesPosition(dices: Dices) {
   // WIP

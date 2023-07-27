@@ -4,7 +4,7 @@ import css from "./App.module.css";
 import { PlayerScores } from "./components/PlayerScores";
 import { useUnit } from "effector-solid";
 import { $game, $editable, startGameClicked, $canStartNewGame } from "./game/model";
-import { FiveDices } from "./components/FiveDices";
+import { DicesAndCup } from "./components/DicesAndCup";
 import { PlayersForm } from "./components/PlayersForm";
 import { GameStatuses } from "./game/game";
 
@@ -15,7 +15,6 @@ const App: Component = () => {
     <div class={css.root}>
       <div class={css.content}>
         <h1>Yacht</h1>
-
         <div style={{ display: "grid", gap: "8px", "grid-template-columns": "auto 1fr" }}>
           <Show when={editable()}>
             <PlayersForm />
@@ -28,7 +27,7 @@ const App: Component = () => {
               </button>
             </div>
             <div>
-              <FiveDices />
+              <DicesAndCup />
               <p style={{}}>stage: {JSON.stringify(game().stage)}</p>
             </div>
           </Show>
