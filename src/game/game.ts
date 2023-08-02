@@ -4,6 +4,7 @@ export type Dice = {
   val: DiceVal;
   id: number;
   pos: number;
+  coords: string;
   state: "kept" | "table" | "cup" | "spinning";
 };
 export type Dices = [Dice, Dice, Dice, Dice, Dice];
@@ -240,13 +241,15 @@ function isTopCategory(name: CategoryName): boolean {
 }
 
 export function createDices(): Dices {
-  return [
-    { val: 1, id: 0, pos: 0, state: "cup" },
-    { val: 1, id: 1, pos: 1, state: "cup" },
-    { val: 1, id: 2, pos: 2, state: "cup" },
-    { val: 1, id: 3, pos: 3, state: "cup" },
-    { val: 1, id: 4, pos: 4, state: "cup" },
-  ] as Dices;
+  let dices: Dice[] = [
+    { val: 1, id: 0, pos: 0, state: "cup", coords: "" },
+    { val: 1, id: 1, pos: 1, state: "cup", coords: "" },
+    { val: 1, id: 2, pos: 2, state: "cup", coords: "" },
+    { val: 1, id: 3, pos: 3, state: "cup", coords: "" },
+    { val: 1, id: 4, pos: 4, state: "cup", coords: "" },
+  ];
+
+  return dices as Dices;
 }
 
 export function createGame(): Game {

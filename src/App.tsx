@@ -3,13 +3,19 @@ import { Show } from "solid-js";
 import css from "./App.module.css";
 import { PlayerScores } from "./components/PlayerScores";
 import { useUnit } from "effector-solid";
-import { $game, $editable, startGameClicked, $canStartNewGame } from "./game/model";
+import { $game, $editable, startGameClicked, $canStartNewGame, $players, $currentPlayer } from "./game/model";
 import { DicesAndCup } from "./components/DicesAndCup";
 import { PlayersForm } from "./components/PlayersForm";
 import { GameStatuses } from "./game/game";
 
 const App: Component = () => {
-  let [game, editable, canStartNewGame] = useUnit([$game, $editable, $canStartNewGame]);
+  let [game, editable, canStartNewGame, players, currentPlayer] = useUnit([
+    $game,
+    $editable,
+    $canStartNewGame,
+    $players,
+    $currentPlayer,
+  ]);
 
   return (
     <div class={css.root}>
@@ -28,6 +34,17 @@ const App: Component = () => {
             </div>
             <div>
               <DicesAndCup />
+              <ul style={{ "list-style": "none", padding: 0 }}>
+                {players().map((p, i) => {
+                  let isCurrent = currentPlayer() === i;
+
+                  return (
+                    <li style={{ "font-weight": isCurrent ? "bold" : "initial" }}>
+                      {p.icon} {p.name}
+                    </li>
+                  );
+                })}
+              </ul>
               <p style={{}}>stage: {JSON.stringify(game().stage)}</p>
             </div>
           </Show>

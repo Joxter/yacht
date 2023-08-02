@@ -2,6 +2,7 @@ import type { Component } from "solid-js";
 import css from "./DicesAndCup.module.css";
 import {
   $dices,
+  $dicesWithPosition,
   $isSpinning,
   $noMoreShakes,
   discardDiceClicked,
@@ -52,7 +53,7 @@ const OFFSET = {
 export const DiceComp: Component<DiceCompProps> = (props) => {
   function st() {
     if (props.dice.state === "cup" || props.dice.state === "spinning") {
-      return `translateX(${OFFSET.left + 110}px) translateY(${OFFSET.left + 130}px)`;
+      return `translateX(${OFFSET.left + 110}px) translateY(${OFFSET.top + 130}px)`;
     }
 
     let y = {
@@ -67,9 +68,9 @@ export const DiceComp: Component<DiceCompProps> = (props) => {
 
   function onCLick() {
     if (props.dice.state === "table") {
-      keepDiceClicked({ diceNumber: props.dice.pos });
+      keepDiceClicked({ diceNumber: props.dice.id });
     } else if (props.dice.state === "kept") {
-      discardDiceClicked({ diceNumber: props.dice.pos });
+      discardDiceClicked({ diceNumber: props.dice.id });
     }
   }
 
