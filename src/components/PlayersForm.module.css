@@ -1,0 +1,27 @@
+.root {
+  font-size: 16px;
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+}
+
+.player {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.error {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1;
+  min-height: 1em;
+  color: #f00;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+}

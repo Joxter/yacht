@@ -47,9 +47,6 @@ export let $isSpinning = $game.map((g) => isSpinning(g.stage));
 export let $noMoreShakes = $game.map((g) => noMoreShakes(g.stage));
 export let $canStartNewGame = $game.map((g) => canStartNewGame(g));
 
-export let addPlayerClicked = createEvent();
-export let removePlayerClicked = createEvent<number>();
-export let playerNameChanged = createEvent<{ n: number; name: string }>();
 export let startGameClicked = createEvent();
 
 export let spinDicesClicked = createEvent();
