@@ -147,10 +147,10 @@ function getDicesPosition(dices: Dices): Dices {
   let { table, kept } = split(dices);
 
   table.sort((a, b) => {
-    return a.val - b.val || a.id - b.id;
+    return a.val - b.val || a.pos - b.pos;
   });
   kept.sort((a, b) => {
-    return a.val - b.val || a.id - b.id;
+    return a.val - b.val || a.pos - b.pos;
   });
   table.forEach((it, i) => {
     it.pos = i;
@@ -164,16 +164,16 @@ function getDicesPosition(dices: Dices): Dices {
 
   let ddd = dices.map((dice): Dice => {
     if (dice.state === "kept") {
-      let x = keptOffset + dice.pos * (diceWidth + gap);
+      let x = OFFSET.left + keptOffset + dice.pos * (diceWidth + gap);
       return {
         ...dice,
         coords: `translateX(${x}px) translateY(${OFFSET.top}px)`,
       };
     } else if (dice.state === "table") {
-      let x = tableOffset + dice.pos * (diceWidth + gap);
+      let x = OFFSET.left + tableOffset + dice.pos * (diceWidth + gap);
       return {
         ...dice,
-        coords: `translateX(${x}px) translateY(${OFFSET.top + diceWidth + gap}px)`,
+        coords: `translateX(${x}px) translateY(${OFFSET.top + 60}px)`,
       };
     } else {
       return {

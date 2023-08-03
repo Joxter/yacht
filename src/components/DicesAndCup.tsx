@@ -44,11 +44,6 @@ type DiceCompProps = {
   dice: Dice;
 };
 
-const OFFSET = {
-  left: 8,
-  top: 6,
-};
-
 export const DiceComp: Component<DiceCompProps> = (props) => {
   function onCLick() {
     if (props.dice.state === "table") {

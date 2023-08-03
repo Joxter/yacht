@@ -29,7 +29,7 @@
   border: none;
   font-size: 24px;
   font-weight: bold;
-  transition: transform 0.2s ease-in-out;
+  transition: transform 0.2s cubic-bezier(0.46, 1.33, 0.64, 1);
 }
 
 .spinner {
