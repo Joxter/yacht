@@ -1,8 +1,7 @@
 import type { Component } from "solid-js";
 import css from "./DicesAndCup.module.css";
 import {
-  $dices,
-  $dicesWithPosition,
+  $dicesWithPositions,
   $isSpinning,
   $noMoreShakes,
   discardDiceClicked,
@@ -15,7 +14,7 @@ import cup from "./cup.webp";
 import { useUnit } from "effector-solid";
 
 export const DicesAndCup: Component = () => {
-  let [dices, isSpinning, noMoreShakes] = useUnit([$dices, $isSpinning, $noMoreShakes]);
+  let [dices, isSpinning, noMoreShakes] = useUnit([$dicesWithPositions, $isSpinning, $noMoreShakes]);
 
   return (
     <div class={css.root}>
@@ -51,21 +50,6 @@ const OFFSET = {
 };
 
 export const DiceComp: Component<DiceCompProps> = (props) => {
-  function st() {
-    if (props.dice.state === "cup" || props.dice.state === "spinning") {
-      return `translateX(${OFFSET.left + 110}px) translateY(${OFFSET.top + 130}px)`;
-    }
-
-    let y = {
-      kept: 0,
-      table: 50 + 12,
-    }[props.dice.state];
-
-    let x = props.dice.pos * 50 + props.dice.pos * 8;
-
-    return `translateX(${OFFSET.left + x}px) translateY(${OFFSET.top + y}px)`;
-  }
-
   function onCLick() {
     if (props.dice.state === "table") {
       keepDiceClicked({ diceNumber: props.dice.id });
@@ -75,7 +59,7 @@ export const DiceComp: Component<DiceCompProps> = (props) => {
   }
 
   return (
-    <button class={css.dice} style={{ transform: st() }} onClick={onCLick}>
+    <button class={css.dice} style={{ transform: props.dice.coords }} onClick={onCLick}>
       {props.dice.state === "spinning" ? <div class={css.spinner}></div> : props.dice.val}
     </button>
   );

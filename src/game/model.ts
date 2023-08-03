@@ -27,13 +27,13 @@ export let playerForm = createPlayersForm();
 export let $dices = $game.map((it) => it.dices);
 export let $players = $game.map((it) => it.players);
 export let $editable = $game.map((game) => game.stage.status === GameStatuses.Init);
+export let $dicesWithPositions = $dices.map((d) => getDicesPosition(d));
 
 export let $countOfEverything = $dices.map((dices) => {
   let res = dices.filter((d) => d.state === "table" || d.state === "kept");
 
   return res.length === 5 ? countOfEverything(res as Dices) : null;
 });
-export let $dicesWithPosition = $dices.map((dices) => getDicesPosition(dices));
 
 export let $currentPlayer = $game.map((s) => {
   if ("player" in s.stage) {
@@ -117,7 +117,6 @@ $game
   });
 
 function split(dices: Dices): { kept: Dice[]; table: Dice[] } {
-  // WIP
   let kept: Dice[] = [];
   let table: Dice[] = [];
 
@@ -132,7 +131,6 @@ function split(dices: Dices): { kept: Dice[]; table: Dice[] } {
 }
 
 function getDicesPosition(dices: Dices): Dices {
-  // WIP
   const OFFSET = {
     left: 8,
     top: 6,
@@ -143,51 +141,45 @@ function getDicesPosition(dices: Dices): Dices {
   let totalWidth = diceWidth * 5 + gap * 4;
 
   function getRowOffset(count: number): number {
-    return totalWidth - (count * diceWidth + (count - 1) * gap) / 2;
+    return (totalWidth - (count * diceWidth + (count - 1) * gap)) / 2;
   }
 
-  function calcPos(dice: Dice): number {
-    return dices.filter((d) => {
-      return d.state === dice.state && d.val < dice.val;
-    }).length;
-  }
+  let { table, kept } = split(dices);
 
-  let aa = [0, 0, 0, 0, 0, 0, 0];
-  let positionedDices = dices.map((dice): Dice => {
-    let res = { ...dice, pos: calcPos(dice) + aa[dice.val] };
-    aa[dice.val]++;
-    return res;
+  table.sort((a, b) => {
+    return a.val - b.val || a.id - b.id;
+  });
+  kept.sort((a, b) => {
+    return a.val - b.val || a.id - b.id;
+  });
+  table.forEach((it, i) => {
+    it.pos = i;
+  });
+  kept.forEach((it, i) => {
+    it.pos = i;
   });
 
-  let keptDices = 0;
-  let tableDices = 0;
+  let keptOffset = getRowOffset(kept.length);
+  let tableOffset = getRowOffset(table.length);
 
-  dices.forEach((dice) => {
+  let ddd = dices.map((dice): Dice => {
     if (dice.state === "kept") {
-      keptDices++;
-    } else if (dice.state === "table") {
-      tableDices++;
-    }
-  });
-
-  let keptOffset = getRowOffset(keptDices);
-  let tableOffset = getRowOffset(tableDices);
-
-  let ddd = positionedDices.map((dice): Dice => {
-    if (dice.state === "kept") {
+      let x = keptOffset + dice.pos * (diceWidth + gap);
       return {
         ...dice,
-        coords: `translateX(${keptOffset + dice.pos * (diceWidth + gap)}px) translateY(${OFFSET.top}px)`,
+        coords: `translateX(${x}px) translateY(${OFFSET.top}px)`,
       };
     } else if (dice.state === "table") {
+      let x = tableOffset + dice.pos * (diceWidth + gap);
       return {
         ...dice,
-        coords: `translateX(${tableOffset + dice.pos * (diceWidth + gap)}px) translateY(${
-          OFFSET.top + diceWidth + gap
-        }px)`,
+        coords: `translateX(${x}px) translateY(${OFFSET.top + diceWidth + gap}px)`,
       };
     } else {
-      return dice;
+      return {
+        ...dice,
+        coords: `translateX(${OFFSET.left + 110}px) translateY(${OFFSET.top + 130}px)`,
+      };
     }
   });
 
